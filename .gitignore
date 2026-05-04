@@ -18,7 +18,9 @@ DerivedData/
 build/xcode-derived/
 build/*.app/
 build/ClaudeMonitor-*/
+build/dmg-staging/
 *.zip
+*.dmg
 
 # Swift / SwiftPM
 .build/

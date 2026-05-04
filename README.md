@@ -38,27 +38,35 @@ small local JSON file, and watches that file for changes. That's it.
 
 ## Install (prebuilt)
 
-1. Download the latest `ClaudeMonitor-1.0.0.zip` from Releases and unzip.
-2. Drag `ClaudeMonitor.app` to `/Applications`.
-   *(SMAppService for "Launch at Login" and notification permissions both require the app to live in `/Applications`.)*
-3. Run `./install.sh` from the unzipped folder. This installs the
-   status line bridge into `~/.claude/settings.json` (merging non-destructively
-   with an existing config).
+1. Download **`ClaudeMonitor-1.1.0.dmg`** from the [latest release](https://github.com/creativepulsenow/claude-usage-taskbar-macos/releases/latest).
+2. Open the DMG and drag `ClaudeMonitor.app` onto the Applications shortcut.
+   *(`SMAppService` for "Launch at Login" and notification permissions both require the app to live in `/Applications`.)*
+3. Open Terminal in the mounted DMG window and run `./install.sh`.
+   This wires up the Claude Code status-line bridge in `~/.claude/settings.json` (non-destructive merge — refuses if the file isn't valid JSON, follows symlinks for dotfile managers).
 4. Quit and relaunch Claude Code.
-5. Send any message in Claude Code so it writes the first batch of usage data.
-6. Launch `ClaudeMonitor.app`.
+5. Send any message in Claude Code so it pipes the first batch of usage data.
+6. Launch `ClaudeMonitor.app` from `/Applications`. **First time only:** macOS will say "ClaudeMonitor cannot be opened because the developer cannot be verified." Right-click the app → **Open** → confirm. (The app is ad-hoc signed; not yet notarized — every subsequent launch is normal.)
 
 You should see a colored circle and percentage in your menu bar.
+
+The bundled `.app` is a universal binary (Apple Silicon + Intel).
 
 ## Build from source
 
 ```bash
-brew install xcodegen
+brew install xcodegen jq
 xcodegen generate
 open ClaudeMonitor.xcodeproj
 ```
 
 Build the `ClaudeMonitor` scheme, then drag the resulting `.app` to `/Applications`.
+
+To produce the same DMG that ships in releases:
+
+```bash
+./Scripts/make-dmg.sh
+# -> build/ClaudeMonitor-<version>.dmg
+```
 
 ## How it works
 
