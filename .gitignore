@@ -1,0 +1,41 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+xcuserdata/
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Build artifacts
+build/xcode-derived/
+build/*.app/
+build/ClaudeMonitor-*/
+*.zip
+
+# Swift / SwiftPM
+.build/
+.swiftpm/
+Packages/
+Package.resolved
+
+# XcodeGen-generated project (regenerable from project.yml)
+# Keep ClaudeMonitor.xcodeproj committed for now since it ships ready-to-open
+# Uncomment if you prefer to regenerate locally:
+# ClaudeMonitor.xcodeproj/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Project-local state
+.claude/state/

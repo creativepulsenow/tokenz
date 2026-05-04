@@ -1,0 +1,50 @@
+# XcodeGen project specification
+# Install xcodegen: brew install xcodegen
+# Generate project: xcodegen generate
+# Then open: open ClaudeMonitor.xcodeproj
+
+name: ClaudeMonitor
+options:
+  bundleIdPrefix: com.claudemonitor
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "15.0"
+  generateEmptyDirectories: false
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+    PRODUCT_BUNDLE_IDENTIFIER: com.claudemonitor.app
+    INFOPLIST_FILE: Resources/Info.plist
+    PRODUCT_NAME: ClaudeMonitor
+
+targets:
+  ClaudeMonitor:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/ClaudeMonitor
+        type: group
+    resources:
+      - path: Resources/Info.plist
+        buildPhase: none
+    settings:
+      base:
+        INFOPLIST_FILE: Resources/Info.plist
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        ENABLE_APP_SANDBOX: false
+        LD_RUNPATH_SEARCH_PATHS:
+          - "@executable_path/../Frameworks"
+    postBuildScripts:
+      - name: "Copy Scripts to Bundle"
+        script: |
+          mkdir -p "${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources/Scripts"
+          cp "${SRCROOT}/Scripts/claude-monitor-statusline.sh" "${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources/Scripts/"
+          cp "${SRCROOT}/Scripts/install.sh" "${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources/Scripts/"
+          chmod +x "${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources/Scripts/"*.sh
+        basedOnDependencyAnalysis: false
