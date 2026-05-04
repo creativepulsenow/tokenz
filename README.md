@@ -119,6 +119,15 @@ The app reads only the rate-limit data that Claude Code already pipes to its
 status line script. If Anthropic changes that data shape, the app will
 gracefully show no data until updated.
 
+## Background
+
+Curious how this is built? The original technical plans walk through the
+design rationale, the alternatives that were rejected (WKWebView scraping,
+direct OAuth API), and the bug-by-bug evolution from v3 to the shipping v1:
+
+- [docs/technical-plan-v3.md](docs/technical-plan-v3.md) — original plan
+- [docs/technical-plan-v3.1.md](docs/technical-plan-v3.1.md) — patched plan that shipped
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
