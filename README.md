@@ -1,13 +1,33 @@
 # ClaudeMonitor
 
-A macOS menu bar app that displays your Claude usage limits.
-
-Shows your current 5-hour session and 7-day weekly usage as a colored
-indicator in the menu bar, with notifications when you cross 70%, 85%,
-and 95% thresholds.
+A native macOS menu bar app that shows your Claude usage limits at a glance.
 
 ![macOS](https://img.shields.io/badge/macOS-14.0%2B-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+<p align="center">
+  <img src="docs/screenshot.png" alt="ClaudeMonitor menu bar and popover" width="540">
+</p>
+
+A tiny indicator in the menu bar — green under 60%, orange between 60–85%,
+red above 85% — tells you where you stand on Claude Code's 5-hour session
+and 7-day weekly windows. Click for exact percentages, time until each
+window resets, and a Launch-at-Login toggle. Get a notification at 70%,
+85%, and 95% so you know before you hit the wall.
+
+No daemons. No polling. No network. ClaudeMonitor reads the rate-limit
+data Claude Code already pipes to its status-line script, writes it to a
+small local JSON file, and watches that file for changes. That's it.
+
+## Highlights
+
+- **Glanceable** — colored dot + percentage in the menu bar, always visible.
+- **Threshold notifications** — one alert per threshold crossing per window. No storms on first install at 95%.
+- **Honest about uncertainty** — shows "Stale" if data hasn't updated in 5 minutes, and a clear "Pro/Max required" hint if rate-limit data isn't being reported for your plan.
+- **Launch at Login** — one-click toggle, backed by `SMAppService`.
+- **Tiny** — ~600 lines of Swift, ~120 lines of bash. Zero third-party dependencies.
+- **Private** — everything stays on your machine; the app makes zero network calls. Inputs are sanitized at the boundary so a misbehaving cohabitant can't crash or spoof the UI.
 
 ## Requirements
 

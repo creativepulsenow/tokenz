@@ -39,3 +39,6 @@ Package.resolved
 
 # Project-local state
 .claude/state/
+
+# Screenshot working files (raw screenshots may contain other apps' UI)
+docs/_*.png
