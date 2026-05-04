@@ -47,18 +47,45 @@ EOF
   exit 0
 fi
 
-# Settings file exists, check for existing statusLine
-EXISTING=$(jq -r '.statusLine.command // empty' "$SETTINGS" 2>/dev/null || true)
+# If settings.json is a symlink (common with dotfile managers like stow,
+# chezmoi, yadm), resolve to the target so we don't replace the symlink with
+# a regular file and silently desync the user's dotfiles repo.
+if [ -L "$SETTINGS" ]; then
+  TARGET="$(readlink "$SETTINGS")"
+  case "$TARGET" in
+    /*) ;;  # absolute path, fine as-is
+    *)  TARGET="$(cd "$(dirname "$SETTINGS")" && cd "$(dirname "$TARGET")" && pwd)/$(basename "$TARGET")" ;;
+  esac
+  echo "Note: ${SETTINGS} is a symlink — modifying its target:"
+  echo "      ${TARGET}"
+  SETTINGS="$TARGET"
+fi
+
+# Validate that the existing settings file parses as JSON before we touch it.
+if ! jq -e '.' "$SETTINGS" > /dev/null 2>&1; then
+  echo "ERROR: ${SETTINGS} is not valid JSON. Refusing to modify it."
+  echo "       Fix it manually and re-run this installer."
+  exit 1
+fi
+
+# Settings file exists and parses, check for existing statusLine
+EXISTING=$(jq -r '.statusLine.command // empty' "$SETTINGS")
 
 if [ -z "$EXISTING" ]; then
   # No statusLine configured, merge ours in
   TMP=$(mktemp)
-  jq --arg cmd "$SCRIPT_DEST" \
-     '. + {statusLine: {type: "command", command: $cmd}}' \
-     "$SETTINGS" > "$TMP" && mv "$TMP" "$SETTINGS"
-  echo "Added status line to existing settings.json."
-  echo ""
-  echo "Done! Restart Claude Code to activate."
+  if jq --arg cmd "$SCRIPT_DEST" \
+        '. + {statusLine: {type: "command", command: $cmd}}' \
+        "$SETTINGS" > "$TMP"; then
+    mv "$TMP" "$SETTINGS"
+    echo "Added status line to existing settings.json."
+    echo ""
+    echo "Done! Restart Claude Code to activate."
+  else
+    rm -f "$TMP"
+    echo "ERROR: Failed to merge into ${SETTINGS}." >&2
+    exit 1
+  fi
 
 elif [ "$EXISTING" = "$SCRIPT_DEST" ]; then
   echo "Status line already installed. Script updated, no config change needed."
@@ -84,6 +111,6 @@ else
   echo "  ${SETTINGS}"
   echo ""
   echo "To replace automatically, run:"
-  echo "  jq --arg cmd \"${SCRIPT_DEST}\" '.statusLine.command = \$cmd' \"${SETTINGS}\" > /tmp/settings-tmp.json && mv /tmp/settings-tmp.json \"${SETTINGS}\""
+  echo "  TMP=\$(mktemp) && jq --arg cmd \"${SCRIPT_DEST}\" '.statusLine.command = \$cmd' \"${SETTINGS}\" > \"\$TMP\" && mv \"\$TMP\" \"${SETTINGS}\""
   exit 1
 fi

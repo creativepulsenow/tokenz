@@ -5,7 +5,7 @@
 
 name: ClaudeMonitor
 options:
-  bundleIdPrefix: com.claudemonitor
+  bundleIdPrefix: com.creativepulsenow
   deploymentTarget:
     macOS: "14.0"
   xcodeVersion: "15.0"
@@ -18,7 +18,7 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     CODE_SIGN_IDENTITY: "-"
     CODE_SIGN_STYLE: Manual
-    PRODUCT_BUNDLE_IDENTIFIER: com.claudemonitor.app
+    PRODUCT_BUNDLE_IDENTIFIER: com.creativepulsenow.claudemonitor
     INFOPLIST_FILE: Resources/Info.plist
     PRODUCT_NAME: ClaudeMonitor
 
@@ -29,6 +29,7 @@ targets:
     sources:
       - path: Sources/ClaudeMonitor
         type: group
+      - path: Resources/Assets.xcassets
     resources:
       - path: Resources/Info.plist
         buildPhase: none
@@ -38,6 +39,7 @@ targets:
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGN_STYLE: Manual
         ENABLE_APP_SANDBOX: false
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         LD_RUNPATH_SEARCH_PATHS:
           - "@executable_path/../Frameworks"
     postBuildScripts:

@@ -31,19 +31,34 @@ struct UsagePopoverView: View {
 
             Divider()
 
-            // 5-hour session
-            UsageRow(
-                label: "Current Session (5hr)",
-                percent: store.fiveHourPercent,
-                resetsAt: store.fiveHourResetsAt
-            )
+            if store.hasReceivedData && !store.hasRateLimitData {
+                // Status line is wired up but Claude Code isn't surfacing rate
+                // limits — almost always means the user is on a plan that
+                // doesn't expose them.
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Rate limits not available")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Text("ClaudeMonitor needs a Claude.ai Pro or Max plan. The status line is connected, but rate-limit data isn't being reported.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            } else {
+                // 5-hour session
+                UsageRow(
+                    label: "Current Session (5hr)",
+                    percent: store.fiveHourPercent,
+                    resetsAt: store.fiveHourResetsAt
+                )
 
-            // 7-day weekly
-            UsageRow(
-                label: "Weekly (7 day)",
-                percent: store.sevenDayPercent,
-                resetsAt: store.sevenDayResetsAt
-            )
+                // 7-day weekly
+                UsageRow(
+                    label: "Weekly (7 day)",
+                    percent: store.sevenDayPercent,
+                    resetsAt: store.sevenDayResetsAt
+                )
+            }
 
             Divider()
 

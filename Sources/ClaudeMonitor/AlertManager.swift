@@ -30,6 +30,10 @@ final class AlertManager {
 
     func checkAndAlert(metric: String, percent: Double, resetsAt: Date?) {
         guard let resetsAt = resetsAt else { return }
+        // Defense in depth: caller already clamps, but Int(Double) traps on huge
+        // values so guard here too.
+        guard percent.isFinite else { return }
+        let pct = Int(min(max(percent, 0), 100))
         let resetsAtEpoch = resetsAt.timeIntervalSince1970
 
         var state = load(metric) ?? WindowState(resetsAt: resetsAtEpoch, firedThresholds: [])
@@ -39,14 +43,18 @@ final class AlertManager {
             state = WindowState(resetsAt: resetsAtEpoch, firedThresholds: [])
         }
 
-        for threshold in thresholds {
-            if Int(percent) >= threshold && !state.firedThresholds.contains(threshold) {
-                state.firedThresholds.insert(threshold)
-                sendNotification(
-                    title: "Claude Usage Alert",
-                    body: "\(metric) at \(Int(percent))%. \(resetString(resetsAt))"
-                )
-            }
+        // Fire one notification for the highest threshold crossed in this update,
+        // and mark all crossed thresholds as fired so we don't backfill on the
+        // next tick. Avoids notification storms on first install at 95%, and
+        // makes a hostile writer flipping resets_at unable to spam more than one
+        // notification per window flip.
+        let crossed = thresholds.filter { pct >= $0 && !state.firedThresholds.contains($0) }
+        if let highest = crossed.max() {
+            state.firedThresholds.formUnion(crossed)
+            sendNotification(
+                title: "Claude Usage Alert",
+                body: "\(metric) at \(highest)%+ (\(pct)%). \(resetString(resetsAt))"
+            )
         }
 
         save(state, for: metric)

@@ -15,12 +15,14 @@
 		9C584133A7405DEB59F21BD0 /* LoginItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CC180F814E3EA94314DF551 /* LoginItemController.swift */; };
 		B3272D6F85F50E31AFBC3081 /* UsagePopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED8E36AEBA8DC3248B9D987A /* UsagePopoverView.swift */; };
 		ECE52C18FAFA159E142C26CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31AB45E76718BB9F485B2725 /* AppDelegate.swift */; };
+		EFFFBB21FF6669EF1268D42A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6DDEDF3373B77CD0576CFAF7 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		2D4DB9569B2F924E26447506 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		31AB45E76718BB9F485B2725 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		521F70AC3D87E43C3AA30738 /* AlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertManager.swift; sourceTree = "<group>"; };
+		6DDEDF3373B77CD0576CFAF7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8CC180F814E3EA94314DF551 /* LoginItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemController.swift; sourceTree = "<group>"; };
 		9924D1F6FBFD4F220629C2E2 /* ClaudeMonitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClaudeMonitor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2DB5F229AF7D225C4CD6830 /* UsageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageStore.swift; sourceTree = "<group>"; };
@@ -33,6 +35,7 @@
 		07E8AC954CB3FA5879910A53 = {
 			isa = PBXGroup;
 			children = (
+				C61DB920C5AD16AEBEF6ACA7 /* Resources */,
 				361D780A341915F0DA0EA365 /* Sources */,
 				652D67D252F283B04AFEF569 /* Products */,
 			);
@@ -52,6 +55,14 @@
 				9924D1F6FBFD4F220629C2E2 /* ClaudeMonitor.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C61DB920C5AD16AEBEF6ACA7 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				6DDEDF3373B77CD0576CFAF7 /* Assets.xcassets */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		F78DF69F6937C96F14C3A78B /* ClaudeMonitor */ = {
@@ -77,6 +88,7 @@
 			buildConfigurationList = 458C8ECDDDF94448F9073656 /* Build configuration list for PBXNativeTarget "ClaudeMonitor" */;
 			buildPhases = (
 				E78E550434E6FDA8035F8938 /* Sources */,
+				CB9A5FC51EE298759396362B /* Resources */,
 				C29461BCCE08D8038D250D05 /* Copy Scripts to Bundle */,
 			);
 			buildRules = (
@@ -122,6 +134,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CB9A5FC51EE298759396362B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EFFFBB21FF6669EF1268D42A /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		C29461BCCE08D8038D250D05 /* Copy Scripts to Bundle */ = {
@@ -215,7 +238,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.claudemonitor.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.creativepulsenow.claudemonitor;
 				PRODUCT_NAME = ClaudeMonitor;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -298,7 +321,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.claudemonitor.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.creativepulsenow.claudemonitor;
 				PRODUCT_NAME = ClaudeMonitor;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;

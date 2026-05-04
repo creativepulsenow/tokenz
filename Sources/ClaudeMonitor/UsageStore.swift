@@ -15,18 +15,56 @@ final class UsageStore: ObservableObject {
     private var staleTimer: Timer?
 
     func update(from data: UsageFileData) {
-        if let fh = data.fiveHour {
-            fiveHourPercent = fh.usedPercentage
-            fiveHourResetsAt = fh.resetsAt.map { Date(timeIntervalSince1970: $0) }
-        }
-        if let sd = data.sevenDay {
-            sevenDayPercent = sd.usedPercentage
-            sevenDayResetsAt = sd.resetsAt.map { Date(timeIntervalSince1970: $0) }
-        }
-        modelName = data.model
+        // Sanitize at the boundary: the source file can be written by any process
+        // with user-level access. Refuse to trust the contents.
+        fiveHourPercent = Self.sanitizePercent(data.fiveHour?.usedPercentage)
+        fiveHourResetsAt = Self.sanitizeReset(data.fiveHour?.resetsAt)
+        sevenDayPercent = Self.sanitizePercent(data.sevenDay?.usedPercentage)
+        sevenDayResetsAt = Self.sanitizeReset(data.sevenDay?.resetsAt)
+        modelName = Self.sanitizeModel(data.model)
         lastUpdated = Date()
         isStale = false
         resetStaleTimer()
+    }
+
+    /// True once the file has been read at least once.
+    var hasReceivedData: Bool { lastUpdated != nil }
+
+    /// True if the file has been read AND it contains usable rate-limit data.
+    /// False positives here power the "Pro/Max required" hint in the popover.
+    var hasRateLimitData: Bool { fiveHourPercent != nil || sevenDayPercent != nil }
+
+    // MARK: - Sanitizers
+
+    private static func sanitizePercent(_ v: Double?) -> Double? {
+        guard let v = v, v.isFinite else { return nil }
+        return min(max(v, 0), 100)
+    }
+
+    /// Reject reset timestamps further than one year from now in either direction.
+    /// Anything outside that range is almost certainly garbage from a misbehaving
+    /// writer and would render as nonsensical relative-date strings.
+    private static func sanitizeReset(_ v: Double?) -> Date? {
+        guard let v = v, v.isFinite else { return nil }
+        let now = Date().timeIntervalSince1970
+        let oneYear: TimeInterval = 86_400 * 365
+        guard abs(v - now) <= oneYear else { return nil }
+        return Date(timeIntervalSince1970: v)
+    }
+
+    /// Cap length and strip control / bidi-override characters so a malicious
+    /// writer can't corrupt the popover layout or visually spoof the model name.
+    private static func sanitizeModel(_ s: String?) -> String? {
+        guard let s = s else { return nil }
+        let capped = String(s.prefix(64))
+        let bidiOverrides: Set<UInt32> = [0x202A, 0x202B, 0x202C, 0x202D, 0x202E,
+                                          0x2066, 0x2067, 0x2068, 0x2069]
+        let scrubbed = capped.unicodeScalars.filter { scalar in
+            !CharacterSet.controlCharacters.contains(scalar) &&
+            !bidiOverrides.contains(scalar.value)
+        }
+        let result = String(String.UnicodeScalarView(scrubbed))
+        return result.isEmpty ? nil : result
     }
 
     private func resetStaleTimer() {
@@ -36,18 +74,11 @@ final class UsageStore: ObservableObject {
         }
     }
 
-    /// Compact text for the menu bar label
+    /// Compact text for the menu bar label. Percent is already clamped 0-100,
+    /// so Int(pct) cannot trap.
     var menuBarText: String {
         guard let pct = fiveHourPercent else { return "-- %" }
         return "\(Int(pct))%"
-    }
-
-    /// SF Symbol name for the menu bar icon color
-    var menuBarIcon: String {
-        guard let pct = fiveHourPercent else { return "circle" }
-        if pct >= 85 { return "circle.fill" }      // will be colored red
-        if pct >= 60 { return "circle.fill" }      // will be colored yellow/orange
-        return "circle.fill"                        // will be colored green
     }
 
     /// Color indicator for the current usage level

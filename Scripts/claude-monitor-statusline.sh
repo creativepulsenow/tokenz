@@ -12,24 +12,32 @@ DATA_FILE="${DATA_DIR}/usage.json"
 TMP_FILE="${DATA_FILE}.tmp.$$"
 mkdir -p "$DATA_DIR"
 
+# Always clean up the tmp file, however we exit.
+trap 'rm -f "$TMP_FILE" 2>/dev/null || true' EXIT
+
 # Read stdin once (Claude Code only sends it once per call)
 input=$(cat)
 
-# Extract rate_limits and write atomically (tmp + mv).
-# If jq fails or rate_limits is absent, leave the previous file alone.
-if echo "$input" | jq -e '.rate_limits' > /dev/null 2>&1; then
-  echo "$input" | jq '{
-    five_hour: .rate_limits.five_hour,
-    seven_day: .rate_limits.seven_day,
-    model: .model.display_name,
-    updated_at: now
-  }' > "$TMP_FILE" 2>/dev/null && mv -f "$TMP_FILE" "$DATA_FILE"
+# Project to ClaudeMonitor's schema and write atomically (tmp + mv).
+# Always write — even when rate_limits is absent — so the app can distinguish
+# "haven't received any data yet" from "received data but no rate limits in
+# this Claude Code response" (the latter typically means a Free plan).
+# The validation gate (`jq -e '.'`) ensures we only mv a syntactically valid
+# JSON object into place; if the projection fails for any reason we keep the
+# previous file untouched.
+if echo "$input" | jq '{
+        five_hour: (.rate_limits.five_hour // null),
+        seven_day: (.rate_limits.seven_day // null),
+        model:     (.model.display_name // null),
+        updated_at: now
+     }' > "$TMP_FILE" 2>/dev/null \
+   && jq -e 'type == "object"' "$TMP_FILE" > /dev/null 2>&1; then
+    mv -f "$TMP_FILE" "$DATA_FILE"
 fi
-rm -f "$TMP_FILE" 2>/dev/null || true
 
 # Print status line for Claude Code display
-FIVE_H=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null)
-WEEK=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty' 2>/dev/null)
+FIVE_H=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null || true)
+WEEK=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty' 2>/dev/null || true)
 
 LIMITS=""
 [ -n "$FIVE_H" ] && LIMITS="5h: $(printf '%.0f' "$FIVE_H")%"

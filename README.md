@@ -59,6 +59,23 @@ Claude Code ──(stdin JSON)──▶ status line script ──▶ ~/Library/A
 
 No network calls. No daemons. No polling. The app only reacts to writes from Claude Code itself.
 
+## Security & sandboxing notes
+
+- All inputs are sanitized at the boundary. The app refuses non-finite or
+  out-of-range percentages, clamps reset timestamps to a ±1y window, and
+  strips control / bidi-override characters from the model name. A buggy or
+  hostile cohabiting process can't crash the app by writing junk to
+  `usage.json`.
+- Notifications fire at most one per threshold crossing per window. A first
+  install at 95% gets one notification, not three.
+- The installer refuses to touch `~/.claude/settings.json` if the file isn't
+  valid JSON, and follows symlinks to their target so dotfile managers
+  (stow, chezmoi, yadm) keep working.
+- The app currently runs **without** the macOS sandbox so the unsandboxed
+  status line script and the app can share a single Application Support
+  path. A future release may move data into a sandbox container; the
+  external path will continue to work via a small shim.
+
 ## Uninstall
 
 1. Quit ClaudeMonitor.
@@ -71,6 +88,17 @@ No network calls. No daemons. No polling. The app only reacts to writes from Cla
 All data stays on your machine. The status line script reads what Claude Code already pipes to it,
 writes it to a local file, and the menu bar app reads that local file. Nothing is sent anywhere.
 
+## Disclaimer
+
+This is an independent, community project. It is **not affiliated with,
+endorsed by, or sponsored by Anthropic**. "Claude" and "Claude Code" are
+trademarks of Anthropic, used here only to describe what the app integrates
+with (nominative fair use).
+
+The app reads only the rate-limit data that Claude Code already pipes to its
+status line script. If Anthropic changes that data shape, the app will
+gracefully show no data until updated.
+
 ## License
 
-See `LICENSE`.
+MIT — see [LICENSE](LICENSE).
