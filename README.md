@@ -85,7 +85,30 @@ Claude Code ──(stdin JSON)──▶ status line script ──▶ ~/Library/A
 - The app watches that file with `DispatchSource.makeFileSystemObjectSource` and re-renders on every change.
 - Alerts fire once per threshold per window; state persists in `UserDefaults` so restarts don't re-fire.
 
-No network calls. No daemons. No polling. The app only reacts to writes from Claude Code itself.
+**No network calls. No daemons. No polling.** The app makes zero API requests against Anthropic — it only reads what your local Claude tools have already pulled. ClaudeMonitor consumes **zero quota**.
+
+### Update cadence
+
+ClaudeMonitor isn't a poller — it's a passive observer. The cadence comes entirely from your local Claude tools running the status-line hook:
+
+- **Active session (Claude Code or Cowork actively responding):** updates every assistant turn — typically every 5–30 seconds during back-and-forth, less often during long tool-heavy responses. File-write to UI latency is sub-second.
+- **Local Claude tool open but idle:** no updates.
+- **No local Claude tool running at all:** no updates. The popover keeps showing the last-known values, with a "Stale" pill appearing after 5 minutes.
+
+Practical effect: the menu bar is always *"current as of your last assistant reply,"* which is what you usually want when you're working. If you've been away and just want to glance at the live number, you'll need to send any message in Claude Code or Cowork to refresh.
+
+### What ClaudeMonitor sees
+
+Rate limits live on your Anthropic account, but ClaudeMonitor only learns about them through local tools that fire the status-line hook. Coverage by surface:
+
+| Surface | Updates the menu bar? |
+|---|---|
+| Claude Code (CLI / IDE) | ✅ every assistant turn |
+| Claude desktop app + Cowork (local agents) | ✅ inherits the same `statusLine` config from `~/.claude/settings.json` |
+| Claude.ai web chat | ❌ nothing local runs |
+| Claude mobile / iPad app | ❌ nothing local runs |
+
+The good news: rate limits are account-wide, so whatever you burn through web chat or mobile is *visible to ClaudeMonitor as soon as the next Claude Code or Cowork turn fires.* The hook reports the current account-wide percentages, so consumption from other surfaces catches up with at most one assistant-turn of delay. If you only ever use claude.ai web chat, ClaudeMonitor won't be useful — it has nothing to react to.
 
 ## Security & sandboxing notes
 
