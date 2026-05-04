@@ -97,6 +97,22 @@ ClaudeMonitor isn't a poller — it's a passive observer. The cadence comes enti
 
 Practical effect: the menu bar is always *"current as of your last assistant reply,"* which is what you usually want when you're working. If you've been away and just want to glance at the live number, you'll need to send any message in Claude Code or Cowork to refresh.
 
+#### Why the menu bar can show 1% less than the Anthropic web console
+
+If you compare the pill to claude.ai's account page mid-conversation, the web will sometimes read 1% (occasionally 2%) higher. That's not a bug — it's the architectural floor of a passive observer:
+
+```
+turn N starts → model generates → turn N completes → status-line fires
+                                                          ↓
+                                             rate_limits as of end of turn N
+                                                          ↓
+                                                 file → watcher → UI
+```
+
+The status-line hook fires **after** an assistant message completes. The web console, on the other hand, reads the live account state, which has already been debited by whatever message is currently in flight. So while you're watching a long response generate, the console is *N+1* and the pill is still showing *N*. As soon as the response finishes, the script fires and the pill catches up within a second.
+
+Closing that 1-turn gap would require actively polling `api.anthropic.com`, which means user-supplied API keys, network calls in the privacy posture, and rate-limit-checks that themselves eat into your rate limits. Not worth it for the gap it closes. **1 turn behind is the floor.** When the pill matches the previous turn's value, the system is healthy.
+
 ### What ClaudeMonitor sees
 
 Rate limits live on your Anthropic account, but ClaudeMonitor only learns about them through local tools that fire the status-line hook. Coverage by surface:
