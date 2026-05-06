@@ -10,15 +10,20 @@ final class UsageStore: ObservableObject {
     @Published var sevenDayResetsAt: Date? = nil
     @Published var modelName: String? = nil
     @Published var lastUpdated: Date? = nil
-    @Published var isStale: Bool = true  // true when no update in STALE_AFTER seconds
+    @Published var isStale: Bool = true       // true after staleAfter seconds: show ~94%
+    @Published var isVeryStale: Bool = true   // true after veryStaleAfter seconds: show —%
 
-    /// Tight enough that a stale number can't mislead. Status line fires after
-    /// every assistant turn, so under active use this should never trip; if it
-    /// does, the user has switched contexts and the displayed number is no
-    /// longer trustworthy.
+    /// First staleness tier. Past this point the menu-bar percent is no longer
+    /// trustworthy as a precise number, but the last-known value is still
+    /// directionally useful, so we display it with a `~` prefix.
     private static let staleAfter: TimeInterval = 90
 
+    /// Hard cutoff. Past 15 minutes without a fresh update, even an approximate
+    /// last-known value is misleading enough that we'd rather show nothing.
+    private static let veryStaleAfter: TimeInterval = 900
+
     private var staleTimer: Timer?
+    private var veryStaleTimer: Timer?
 
     func update(from data: UsageFileData) {
         // Sanitize at the boundary: the source file can be written by any process
@@ -33,7 +38,8 @@ final class UsageStore: ObservableObject {
         // stale, fall back to now so the relative-date string stays sane.
         lastUpdated = Self.sanitizeReset(data.updatedAt) ?? Date()
         isStale = false
-        resetStaleTimer()
+        isVeryStale = false
+        resetStaleTimers()
     }
 
     /// True once the file has been read at least once.
@@ -76,25 +82,42 @@ final class UsageStore: ObservableObject {
         return result.isEmpty ? nil : result
     }
 
-    private func resetStaleTimer() {
+    private func resetStaleTimers() {
         staleTimer?.invalidate()
+        veryStaleTimer?.invalidate()
         staleTimer = Timer.scheduledTimer(withTimeInterval: Self.staleAfter, repeats: false) { [weak self] _ in
             Task { @MainActor in self?.isStale = true }
         }
+        veryStaleTimer = Timer.scheduledTimer(withTimeInterval: Self.veryStaleAfter, repeats: false) { [weak self] _ in
+            Task { @MainActor in self?.isVeryStale = true }
+        }
     }
 
-    /// Compact text for the menu bar label. Hide the percent when stale so we
-    /// never show a confidently-wrong number — the user opens the popover to
-    /// see "last updated X ago" and understands why.
+    /// True when we know the cached 5-hour window has rolled over since our last
+    /// update. Once that happens, the cached percent is definitely meaningless —
+    /// even an "approximate" reading would be wrong.
+    private var fiveHourWindowHasReset: Bool {
+        guard let reset = fiveHourResetsAt else { return false }
+        return reset < Date()
+    }
+
+    /// Compact text for the menu bar label.
+    /// - Fresh data: `94%`
+    /// - Stale (90s+) but recent and window still valid: `~94%`
+    /// - Very stale (15min+) or window has rolled over: `—%`
     var menuBarText: String {
-        guard let pct = fiveHourPercent, !isStale else { return "—%" }
-        return "\(Int(pct))%"
+        guard let pct = fiveHourPercent else { return "—%" }
+        if !isStale { return "\(Int(pct))%" }
+        if isVeryStale || fiveHourWindowHasReset { return "—%" }
+        return "~\(Int(pct))%"
     }
 
-    /// Color indicator for the current usage level. Stale data falls back to
-    /// `.unknown` (gray dot) so the menu bar visually flags untrustworthy state.
+    /// Color indicator for the current usage level. We keep the meaningful color
+    /// during the tilde-stale tier (the last-known value is still directionally
+    /// right) and drop to gray only when we genuinely have no idea.
     var usageLevel: UsageLevel {
-        guard let pct = fiveHourPercent, !isStale else { return .unknown }
+        guard let pct = fiveHourPercent else { return .unknown }
+        if isStale && (isVeryStale || fiveHourWindowHasReset) { return .unknown }
         if pct >= 85 { return .critical }
         if pct >= 60 { return .warning }
         return .normal
