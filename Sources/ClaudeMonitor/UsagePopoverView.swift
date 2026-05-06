@@ -13,20 +13,35 @@ struct UsagePopoverView: View {
             HStack {
                 Text("Claude Usage").font(.headline)
                 Spacer()
-                if store.isStale {
-                    Text("Stale")
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.orange.opacity(0.15))
-                        .cornerRadius(4)
-                }
                 if let model = store.modelName {
                     Text(model)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
+            }
+
+            // Prominent stale banner. We surface this BEFORE the numbers so a
+            // user looking at the popover can't miss that the values below are
+            // not current. Tied to the same `isStale` flag that hides the
+            // menu-bar percent.
+            if store.isStale && store.hasRateLimitData {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Data may be out of date")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        Text("Claude Code hasn't reported new usage recently. Numbers below reflect the last assistant response.")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.orange.opacity(0.12))
+                .cornerRadius(6)
             }
 
             Divider()

@@ -10,7 +10,13 @@ final class UsageStore: ObservableObject {
     @Published var sevenDayResetsAt: Date? = nil
     @Published var modelName: String? = nil
     @Published var lastUpdated: Date? = nil
-    @Published var isStale: Bool = true  // true when no update in 5+ minutes
+    @Published var isStale: Bool = true  // true when no update in STALE_AFTER seconds
+
+    /// Tight enough that a stale number can't mislead. Status line fires after
+    /// every assistant turn, so under active use this should never trip; if it
+    /// does, the user has switched contexts and the displayed number is no
+    /// longer trustworthy.
+    private static let staleAfter: TimeInterval = 90
 
     private var staleTimer: Timer?
 
@@ -22,7 +28,10 @@ final class UsageStore: ObservableObject {
         sevenDayPercent = Self.sanitizePercent(data.sevenDay?.usedPercentage)
         sevenDayResetsAt = Self.sanitizeReset(data.sevenDay?.resetsAt)
         modelName = Self.sanitizeModel(data.model)
-        lastUpdated = Date()
+        // Prefer the writer's timestamp over our read time. The two are usually
+        // close, but if the writer's timestamp is in the future or absurdly
+        // stale, fall back to now so the relative-date string stays sane.
+        lastUpdated = Self.sanitizeReset(data.updatedAt) ?? Date()
         isStale = false
         resetStaleTimer()
     }
@@ -69,21 +78,23 @@ final class UsageStore: ObservableObject {
 
     private func resetStaleTimer() {
         staleTimer?.invalidate()
-        staleTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: false) { [weak self] _ in
+        staleTimer = Timer.scheduledTimer(withTimeInterval: Self.staleAfter, repeats: false) { [weak self] _ in
             Task { @MainActor in self?.isStale = true }
         }
     }
 
-    /// Compact text for the menu bar label. Percent is already clamped 0-100,
-    /// so Int(pct) cannot trap.
+    /// Compact text for the menu bar label. Hide the percent when stale so we
+    /// never show a confidently-wrong number — the user opens the popover to
+    /// see "last updated X ago" and understands why.
     var menuBarText: String {
-        guard let pct = fiveHourPercent else { return "-- %" }
+        guard let pct = fiveHourPercent, !isStale else { return "—%" }
         return "\(Int(pct))%"
     }
 
-    /// Color indicator for the current usage level
+    /// Color indicator for the current usage level. Stale data falls back to
+    /// `.unknown` (gray dot) so the menu bar visually flags untrustworthy state.
     var usageLevel: UsageLevel {
-        guard let pct = fiveHourPercent else { return .unknown }
+        guard let pct = fiveHourPercent, !isStale else { return .unknown }
         if pct >= 85 { return .critical }
         if pct >= 60 { return .warning }
         return .normal

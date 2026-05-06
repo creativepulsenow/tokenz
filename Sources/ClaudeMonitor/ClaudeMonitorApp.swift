@@ -26,8 +26,10 @@ struct MenuBarLabel: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            Image(systemName: "circle.fill")
-                .font(.system(size: 8))
+            // SF Symbol `asterisk` — visually evocative of Claude's mark without
+            // bundling Anthropic's actual trademark. Color tracks usage level.
+            Image(systemName: "asterisk")
+                .font(.system(size: 11, weight: .bold))
                 .foregroundColor(iconColor)
             Text(store.menuBarText)
                 .font(.system(.caption, design: .monospaced))

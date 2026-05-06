@@ -2,10 +2,18 @@ import Foundation
 
 /// Watches ~/Library/Application Support/ClaudeMonitor/usage.json using DispatchSource (FSEvents).
 /// Parses the file on change and calls the onChange callback with the decoded data.
+///
+/// Reliability strategy: events are best-effort. The status line writes via atomic
+/// `mv` (unlinks the old inode, creates a new one), so the fd-based watcher has to
+/// detect `.delete`, cancel, and reattach. Events can be missed during the reattach
+/// window, or if `open()` races with `mv`. To make the menu bar resilient to dropped
+/// events, we also poll the file at a steady cadence as a safety net.
 final class FileWatcher {
     private let filePath: String
     private var fileDescriptor: Int32 = -1
     private var source: DispatchSourceFileSystemObject?
+    private var pollTimer: DispatchSourceTimer?
+    private var lastModified: Date?
     private let onChange: (UsageFileData) -> Void
     private let queue = DispatchQueue(label: "ClaudeMonitor.FileWatcher", qos: .utility)
 
@@ -15,16 +23,18 @@ final class FileWatcher {
     }
 
     func start() {
-        queue.async { [weak self] in self?.startInternal() }
+        queue.async { [weak self] in
+            self?.startInternal()
+            self?.startPolling()
+        }
     }
 
     private func startInternal() {
-        // Initial read if file already exists
-        readFile()
-
         let fd = open(filePath, O_EVTONLY)
         guard fd >= 0 else {
-            // File doesn't exist yet, poll until it appears
+            // File doesn't exist yet, poll until it appears (and let the safety
+            // poller pick it up too).
+            readFile()
             scheduleRetry()
             return
         }
@@ -54,6 +64,38 @@ final class FileWatcher {
 
         self.source = src
         src.resume()
+
+        // Read AFTER attaching the source. Reading first leaves a window where a
+        // write could land between read and open, and we'd miss it until the next
+        // write. Reading after means any write that happens between open and
+        // readFile will fire an event we'll catch.
+        readFile()
+    }
+
+    /// Periodic safety-net poll. Catches any updates that the event-based
+    /// watcher missed (e.g., the open/readFile race, or events dropped under
+    /// system load). Cheap: stat + maybe-read.
+    private func startPolling() {
+        let timer = DispatchSource.makeTimerSource(queue: queue)
+        timer.schedule(deadline: .now() + 10, repeating: 10)
+        timer.setEventHandler { [weak self] in
+            self?.pollOnce()
+        }
+        pollTimer = timer
+        timer.resume()
+    }
+
+    private func pollOnce() {
+        // Only re-read if the file's mtime has actually changed since our last
+        // read. Avoids redundant decode work and onChange churn.
+        guard let attrs = try? FileManager.default.attributesOfItem(atPath: filePath),
+              let mtime = attrs[.modificationDate] as? Date else {
+            return
+        }
+        if let last = lastModified, last == mtime {
+            return
+        }
+        readFile()
     }
 
     private func readFile() {
@@ -61,6 +103,10 @@ final class FileWatcher {
               !data.isEmpty,
               let parsed = try? JSONDecoder().decode(UsageFileData.self, from: data) else {
             return
+        }
+        if let attrs = try? FileManager.default.attributesOfItem(atPath: filePath),
+           let mtime = attrs[.modificationDate] as? Date {
+            lastModified = mtime
         }
         onChange(parsed)
     }
@@ -83,6 +129,8 @@ final class FileWatcher {
             self?.source?.cancel()
             self?.source = nil
             self?.fileDescriptor = -1
+            self?.pollTimer?.cancel()
+            self?.pollTimer = nil
         }
     }
 }
