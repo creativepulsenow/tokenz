@@ -20,11 +20,17 @@ No daemons. No polling. No network. ClaudeMonitor reads the rate-limit
 data Claude Code already pipes to its status-line script, writes it to a
 small local JSON file, and watches that file for changes. That's it.
 
+## Why this exists
+
+If you've used Claude Code on Pro or Max, you know how this goes. You're deep in a coding session, the responses slow down or stop, and you discover you've burned the 5-hour window or your week. At that point the only options are wait it out or switch to API billing. Neither is what you want mid-task.
+
+Anthropic shows usage in the web console, but you have to go look. There's no signal on your machine while you work. ClaudeMonitor is that signal. Percentage in the menu bar, notifications at 70 / 85 / 95%, popover with reset times.
+
 ## Highlights
 
-- **Glanceable** — colored dot + percentage in the menu bar, always visible.
+- **Glanceable** — asterisk + percentage in the menu bar, always visible.
 - **Threshold notifications** — one alert per threshold crossing per window. No storms on first install at 95%.
-- **Honest about uncertainty** — shows "Stale" if data hasn't updated in 5 minutes, and a clear "Pro/Max required" hint if rate-limit data isn't being reported for your plan.
+- **Honest about uncertainty** — when no update has arrived in 90 seconds, the menu bar drops the percentage and the popover shows a warning banner. A blank `—%` beats a wrong number.
 - **Launch at Login** — one-click toggle, backed by `SMAppService`.
 - **Tiny** — ~600 lines of Swift, ~120 lines of bash. Zero third-party dependencies.
 - **Private** — everything stays on your machine; the app makes zero network calls. Inputs are sanitized at the boundary so a misbehaving cohabitant can't crash or spoof the UI.
@@ -47,7 +53,7 @@ small local JSON file, and watches that file for changes. That's it.
 5. Send any message in Claude Code so it pipes the first batch of usage data.
 6. Launch `ClaudeMonitor.app` from `/Applications`. **First time only:** macOS will say "ClaudeMonitor cannot be opened because the developer cannot be verified." Right-click the app → **Open** → confirm. (The app is ad-hoc signed; not yet notarized — every subsequent launch is normal.)
 
-You should see a colored circle and percentage in your menu bar.
+You should see an asterisk and a percentage in your menu bar.
 
 The bundled `.app` is a universal binary (Apple Silicon + Intel).
 
@@ -93,7 +99,7 @@ ClaudeMonitor isn't a poller — it's a passive observer. The cadence comes enti
 
 - **Active session (Claude Code or Cowork actively responding):** updates every assistant turn — typically every 5–30 seconds during back-and-forth, less often during long tool-heavy responses. File-write to UI latency is sub-second.
 - **Local Claude tool open but idle:** no updates.
-- **No local Claude tool running at all:** no updates. The popover keeps showing the last-known values, with a "Stale" pill appearing after 5 minutes.
+- **No local Claude tool running at all:** no updates. After 90 seconds the menu bar swaps to `—%` and the popover banners it. Last-known numbers are still there if you click in, but the app stops claiming they're current.
 
 Practical effect: the menu bar is always *"current as of your last assistant reply,"* which is what you usually want when you're working. If you've been away and just want to glance at the live number, you'll need to send any message in Claude Code or Cowork to refresh.
 
@@ -125,6 +131,18 @@ Rate limits live on your Anthropic account, but ClaudeMonitor only learns about 
 | Claude mobile / iPad app | ❌ nothing local runs |
 
 The good news: rate limits are account-wide, so whatever you burn through web chat or mobile is *visible to ClaudeMonitor as soon as the next Claude Code or Cowork turn fires.* The hook reports the current account-wide percentages, so consumption from other surfaces catches up with at most one assistant-turn of delay. If you only ever use claude.ai web chat, ClaudeMonitor won't be useful — it has nothing to react to.
+
+## Reliability & limits
+
+ClaudeMonitor is best-effort. A few caveats before you rely on it:
+
+- **It only sees what your local Claude Code (or Cowork) sees.** If you only use claude.ai web or mobile, the status-line hook never fires, so the app has nothing to show.
+- **It's at least one assistant turn behind live account state.** Structural, not a bug — see [Update cadence](#update-cadence).
+- **Notifications can be missed.** Thresholds (70 / 85 / 95%) only fire when the app is running and a status-line update arrives that crosses them. Cross 85% via web chat while ClaudeMonitor is closed and you'll skip that alert — only the next unfired threshold counts.
+- **The 95% alert is late by design.** By the time it fires you're nearly out for the window. If you want earlier warning, watch for the 70% one.
+- **The percentage hides when stale.** Past 90 seconds without fresh data the menu bar shows `—%`. Run any prompt in Claude Code to bring it back.
+
+Use it as background information. If hitting a window mid-task would cost you real money or break a deadline, you'll want your own habit running too.
 
 ## Security & sandboxing notes
 
@@ -165,6 +183,8 @@ with (nominative fair use).
 The app reads only the rate-limit data that Claude Code already pipes to its
 status line script. If Anthropic changes that data shape, the app will
 gracefully show no data until updated.
+
+**No warranty. Use at your own risk.** Provided "as is" — see [LICENSE](LICENSE) for the full text. It will miss limit crossings sometimes, and it can't stop you from being charged or rate-limited. If overage actually matters for your work, don't rely on this app alone to catch it.
 
 ## Background
 
