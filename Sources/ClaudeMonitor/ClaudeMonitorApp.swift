@@ -31,15 +31,12 @@ struct MenuBarLabel: View {
             Image(systemName: "asterisk")
                 .font(.system(size: 11, weight: .bold))
                 .foregroundColor(iconColor)
-            Text(store.menuBarText)
+            // Single Text composing percent + countdown, wrapped in [] in
+            // UsageStore.menuBarFullText so the whole group reads as one app's
+            // data in a crowded menu bar. Capsule overlays don't render in
+            // MenuBarExtra; brackets do because they're plain text.
+            Text(store.menuBarFullText)
                 .font(.system(.caption, design: .monospaced))
-            // Countdown to the 5-hour window reset, when available. Suppressed
-            // when we're in `—%` mode (see UsageStore.menuBarCountdown).
-            if let countdown = store.menuBarCountdown {
-                Text("· \(countdown)")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundColor(.secondary)
-            }
         }
     }
 

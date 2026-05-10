@@ -124,6 +124,25 @@ final class UsageStore: ObservableObject {
         return "~\(Int(pct))%"
     }
 
+    /// Single-string composition of percent + countdown for the menu bar label.
+    /// We render this as one `Text` because MenuBarExtra's label is unreliable
+    /// about rendering multiple sibling `Text` views — only the first reliably
+    /// makes it to the bar. Combining into one string fixes that.
+    ///
+    /// Wrapped in square brackets so the asterisk + percent + countdown read
+    /// as one grouped unit in a crowded menu bar. Brackets render cleanly
+    /// because they're plain text — unlike Capsule overlays, which the menu
+    /// bar's NSStatusItem layer silently drops.
+    var menuBarFullText: String {
+        let inner: String
+        if let countdown = menuBarCountdown {
+            inner = "\(menuBarText) · \(countdown)"
+        } else {
+            inner = menuBarText
+        }
+        return "[\(inner)]"
+    }
+
     /// Optional countdown to the 5-hour window reset, shown next to the percent
     /// in the menu bar. The reset timestamp is a wall-clock time set when the
     /// window started, so it stays valid even when usage data is stale —
