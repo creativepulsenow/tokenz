@@ -28,7 +28,7 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 
 ## Highlights
 
-- **Glanceable** — asterisk + percentage in the menu bar, always visible.
+- **Glanceable** — asterisk + percentage in the menu bar, plus a `· 1h 23m` countdown to the next 5-hour reset so you can read both numbers at a glance.
 - **Threshold notifications** — one alert per threshold crossing per window. No storms on first install at 95%.
 - **Honest about uncertainty** — past 90 seconds without a fresh update, the menu bar prefixes the last-known number with a tilde (`~94%`) to signal "approximate." Past 15 minutes, or once the 5-hour window has rolled over, it gives up and shows `—%`. The popover shows a warning banner the whole time.
 - **Launch at Login** — one-click toggle, backed by `SMAppService`.

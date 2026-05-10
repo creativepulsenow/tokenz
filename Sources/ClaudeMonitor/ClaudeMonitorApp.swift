@@ -33,6 +33,13 @@ struct MenuBarLabel: View {
                 .foregroundColor(iconColor)
             Text(store.menuBarText)
                 .font(.system(.caption, design: .monospaced))
+            // Countdown to the 5-hour window reset, when available. Suppressed
+            // when we're in `—%` mode (see UsageStore.menuBarCountdown).
+            if let countdown = store.menuBarCountdown {
+                Text("· \(countdown)")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundColor(.secondary)
+            }
         }
     }
 
