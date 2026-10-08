@@ -49,6 +49,23 @@ struct UsagePopoverView: View {
                 ConnectionPanel(connection: connection)
             }
 
+            // Nothing runs on the user's behalf without being shown here.
+            if connection.state == .connected, let chained = connection.chained {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Also running your status line")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                    Text(chained)
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .truncationMode(.middle)
+                    Button("Stop Running It") { connection.removeChainedCommand() }
+                        .controlSize(.small)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
             Divider()
 
             if store.hasReceivedData && !store.hasRateLimitData {
@@ -88,6 +105,13 @@ struct UsagePopoverView: View {
                 set: { loginItem.setEnabled($0) }
             ))
             .font(.caption)
+            .disabled(connection.state == .appNotInstalled)
+            if let error = loginItem.lastError {
+                Text(error)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             // Last updated
             if let updated = store.lastUpdated {
@@ -123,7 +147,7 @@ struct UsagePopoverView: View {
         .frame(minWidth: 280)
         .onAppear {
             loginItem.refresh()
-            connection.refresh()
+            connection.refresh(clearingMessage: true)
             if !hasRequestedPermission {
                 hasRequestedPermission = true
                 onRequestNotificationPermission?()
@@ -183,11 +207,11 @@ struct ConnectionPanel: View {
         switch connection.state {
         case .connected: return nil
         case .notConnected:
-            return "Connect adds a status line entry to ~/.claude/settings.json so Claude Code can report your usage. A backup of the file is saved first."
+            return "Connect adds a status line entry to ~/.claude/settings.json so Claude Code can report your usage. Tokenz keeps a backup of the file."
         case .needsUpdate:
             return "Claude Code is set up with an earlier version of this app (it used to be called ClaudeMonitor) or a copy that has moved. Update points it at this app."
         case .otherStatusLine:
-            return "Connect keeps your status line showing and adds Tokenz alongside it. A backup of settings.json is saved first."
+            return "Connect keeps your status line showing and adds Tokenz alongside it. Tokenz keeps a backup of settings.json."
         case .settingsUnreadable:
             return "~/.claude/settings.json isn't valid JSON, or lists statusLine more than once, so Tokenz won't change it. Fix the file, then reopen this window."
         case .appNotInstalled:
@@ -217,7 +241,7 @@ struct UsageRow: View {
                 Text(label)
                     .font(.subheadline)
                 Spacer()
-                Text(percent.map { "\(Int($0))%" } ?? "--")
+                Text(percent.map(UsageFormat.percent) ?? "—")
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(percentColor)
@@ -237,7 +261,7 @@ struct UsageRow: View {
 
             // Reset timer
             if let reset = resetsAt {
-                Text("Resets \(reset, style: .relative)")
+                Text("Resets in \(reset, style: .relative)")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
@@ -246,8 +270,10 @@ struct UsageRow: View {
 
     private var percentColor: Color {
         guard let p = percent else { return .gray }
-        if p >= 85 { return .red }
-        if p >= 60 { return .orange }
-        return .green
+        switch UsageStore.UsageLevel(percent: p) {
+        case .critical: return .red
+        case .warning: return .orange
+        case .normal, .unknown: return .green
+        }
     }
 }

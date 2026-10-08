@@ -5,7 +5,6 @@
 
 name: Tokenz
 options:
-  bundleIdPrefix: com.creativepulsenow
   deploymentTarget:
     macOS: "14.0"
   xcodeVersion: "15.0"
@@ -15,14 +14,13 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    MACOSX_DEPLOYMENT_TARGET: "14.0"
     # Apple Silicon only. Intel Macs are not supported.
     ARCHS: arm64
     CODE_SIGN_IDENTITY: "-"
     CODE_SIGN_STYLE: Manual
-    PRODUCT_BUNDLE_IDENTIFIER: com.creativepulsenow.tokenz
-    INFOPLIST_FILE: Resources/Info.plist
-    PRODUCT_NAME: Tokenz
+    # Keep the build machine's paths out of binaries: record source paths
+    # relative to the repo.
+    OTHER_SWIFT_FLAGS: "$(inherited) -file-prefix-map $(SRCROOT)=."
 
 targets:
   Tokenz:
@@ -30,30 +28,55 @@ targets:
     platform: macOS
     sources:
       - path: Sources/Tokenz
-        type: group
       - path: Resources/Assets.xcassets
-    resources:
-      - path: Resources/Info.plist
-        buildPhase: none
     settings:
       base:
+        PRODUCT_NAME: Tokenz
+        PRODUCT_BUNDLE_IDENTIFIER: com.creativepulsenow.tokenz
         INFOPLIST_FILE: Resources/Info.plist
-        CODE_SIGN_IDENTITY: "-"
-        CODE_SIGN_STYLE: Manual
         ENABLE_APP_SANDBOX: false
-        # Hardened runtime on, and no debug entitlement (get-task-allow) in
-        # shipped builds: other processes must not be able to attach to the app.
-        ENABLE_HARDENED_RUNTIME: true
-        CODE_SIGN_INJECT_BASE_ENTITLEMENTS: false
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        # Keep the build machine's paths out of the binary: record source
-        # paths relative to the repo.
-        OTHER_SWIFT_FLAGS: "$(inherited) -file-prefix-map $(SRCROOT)=."
       configs:
         Release:
-          # Strip local symbols and debug stabs from shipped builds. They
-          # carry absolute object-file paths, and with them the user name.
+          # Shipped builds use the hardened runtime and carry no debug
+          # entitlement (get-task-allow), so other processes can't attach to
+          # the app. Debug builds keep the default so Xcode can debug them.
+          ENABLE_HARDENED_RUNTIME: true
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: false
+          # Strip local symbols and debug stabs. They carry absolute
+          # object-file paths, and with them the user name.
           DEPLOYMENT_POSTPROCESSING: true
           STRIP_INSTALLED_PRODUCT: true
           STRIP_STYLE: non-global
           COPY_PHASE_STRIP: true
+
+  # Unit tests for the pure logic. Hostless: the files under test are
+  # compiled straight into the bundle, so running the tests never launches
+  # the menu bar app or touches real settings.
+  TokenzTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/TokenzTests
+      - path: Sources/Tokenz/AppPaths.swift
+      - path: Sources/Tokenz/SettingsEditor.swift
+      - path: Sources/Tokenz/ClaudeCodeConnection.swift
+      - path: Sources/Tokenz/UsageMerge.swift
+      - path: Sources/Tokenz/AlertRules.swift
+      - path: Sources/Tokenz/UsageFormat.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.creativepulsenow.tokenz.tests
+        GENERATE_INFOPLIST_FILE: true
+
+schemes:
+  Tokenz:
+    build:
+      targets:
+        Tokenz: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - TokenzTests

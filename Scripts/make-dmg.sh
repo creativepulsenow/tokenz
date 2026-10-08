@@ -25,9 +25,15 @@ if [ -z "${ALLOW_DIRTY:-}" ] && [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
-# Build if needed. Always from scratch, so nothing stale from an earlier
+# Package an existing .app if one was given; it has to exist.
+if [ -n "${1:-}" ] && [ ! -d "$1" ]; then
+  echo "ERROR: $1 does not exist"
+  exit 1
+fi
+
+# Otherwise build. Always from scratch, so nothing stale from an earlier
 # build can end up in the bundle.
-if [ ! -d "$APP_PATH" ] || [ -z "${1:-}" ]; then
+if [ -z "${1:-}" ]; then
   echo "==> Building Release configuration (Apple Silicon)"
   rm -rf "${DERIVED}/Build"
   xcodebuild \
@@ -64,7 +70,7 @@ esac
 case "$ENTITLEMENTS" in
   *get-task-allow*) echo "ERROR: debug entitlement get-task-allow is present"; exit 1 ;;
 esac
-if LC_ALL=C grep -a -c '/Users/' "$BINARY" > /dev/null; then
+if LC_ALL=C grep -aq '/Users/' "$BINARY"; then
   echo "ERROR: the binary contains local /Users/ paths"; exit 1
 fi
 
@@ -89,7 +95,7 @@ ln -s /Applications "$STAGING/Applications"
 # README inside the DMG
 cat > "$STAGING/README.txt" <<EOF
 Tokenz ${VERSION}
-$(printf '=%.0s' $(seq 1 $((13 + ${#VERSION}))))
+$(printf '=%.0s' $(seq 1 $((7 + ${#VERSION}))))
 
 A native macOS menu bar app that shows your Claude usage limits.
 
@@ -100,8 +106,8 @@ INSTALL
 2. Open Tokenz from /Applications (see FIRST LAUNCH below).
 
 3. Click the new menu bar item, then "Connect to Claude Code".
-   This adds a statusLine entry to ~/.claude/settings.json. A backup
-   of the file is saved first, and an existing status line of your
+   This adds a statusLine entry to ~/.claude/settings.json. Tokenz
+   keeps a backup of the file, and an existing status line of your
    own keeps showing.
 
 4. Send any message in Claude Code so it reports the first batch of

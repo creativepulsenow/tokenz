@@ -23,6 +23,13 @@ final class UsageStore: ObservableObject {
     /// from the web, mobile or another machine is the exception, hence the `~`.)
     private static let staleAfter: TimeInterval = 90
 
+    /// How often the countdown in the menu bar is refreshed.
+    private static let clockTickInterval: TimeInterval = 30
+
+    /// How far ahead of our clock a writer's timestamp may be before we
+    /// distrust it.
+    private static let futureTolerance: TimeInterval = 60
+
     private var staleTimer: Timer?
     private var clockTickTimer: Timer?
 
@@ -30,18 +37,18 @@ final class UsageStore: ObservableObject {
         // Sanitize at the boundary: the source file can be written by any process
         // with user-level access. Refuse to trust the contents.
         fiveHourPercent = Self.sanitizePercent(data.fiveHour?.usedPercentage)
-        fiveHourResetsAt = Self.sanitizeReset(data.fiveHour?.resetsAt)
+        fiveHourResetsAt = Self.sanitizeTimestamp(data.fiveHour?.resetsAt)
         sevenDayPercent = Self.sanitizePercent(data.sevenDay?.usedPercentage)
-        sevenDayResetsAt = Self.sanitizeReset(data.sevenDay?.resetsAt)
+        sevenDayResetsAt = Self.sanitizeTimestamp(data.sevenDay?.resetsAt)
         modelName = Self.sanitizeModel(data.model)
         // Prefer the writer's timestamp over our read time. The two are usually
         // close, but if the writer's timestamp is in the future or absurdly
         // stale, fall back to now so the relative-date string stays sane.
         let now = Date()
-        var updated = Self.sanitizeReset(data.updatedAt) ?? now
+        var updated = Self.sanitizeTimestamp(data.updatedAt) ?? now
         // A timestamp from the future (a spoofed file, or the clock moved back)
         // would keep the number looking fresh forever.
-        if updated.timeIntervalSince(now) > 60 { updated = now }
+        if updated.timeIntervalSince(now) > Self.futureTolerance { updated = now }
         lastUpdated = updated
         // Age from the writer's timestamp, not from when we read the file, so a
         // relaunch hours later doesn't present an old number as fresh.
@@ -53,8 +60,9 @@ final class UsageStore: ObservableObject {
     /// True once the file has been read at least once.
     var hasReceivedData: Bool { lastUpdated != nil }
 
-    /// True if the file has been read AND it contains usable rate-limit data.
-    /// False positives here power the "Pro/Max required" hint in the popover.
+    /// True if the file has been read and it contains usable rate-limit data.
+    /// Data received without any limits is what triggers the "Pro or Max
+    /// plan" hint in the popover.
     var hasRateLimitData: Bool { fiveHourPercent != nil || sevenDayPercent != nil }
 
     // MARK: - Sanitizers
@@ -64,10 +72,10 @@ final class UsageStore: ObservableObject {
         return min(max(v, 0), 100)
     }
 
-    /// Reject reset timestamps further than one year from now in either direction.
+    /// Reject timestamps further than one year from now in either direction.
     /// Anything outside that range is almost certainly garbage from a misbehaving
     /// writer and would render as nonsensical relative-date strings.
-    private static func sanitizeReset(_ v: Double?) -> Date? {
+    private static func sanitizeTimestamp(_ v: Double?) -> Date? {
         guard let v = v, v.isFinite else { return nil }
         let now = Date().timeIntervalSince1970
         let oneYear: TimeInterval = 86_400 * 365
@@ -96,15 +104,16 @@ final class UsageStore: ObservableObject {
         staleTimer?.invalidate()
         staleTimer = nil
         if staleIn > 0 {
+            // Timers scheduled here fire on the main run loop.
             staleTimer = Timer.scheduledTimer(withTimeInterval: staleIn, repeats: false) { [weak self] _ in
-                Task { @MainActor in self?.isStale = true }
+                MainActor.assumeIsolated { self?.isStale = true }
             }
         }
         // Start the clock-tick timer once. It runs forever so the countdown
         // keeps refreshing even when no new usage data arrives.
         if clockTickTimer == nil {
-            clockTickTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
-                Task { @MainActor in self?.clockTick &+= 1 }
+            clockTickTimer = Timer.scheduledTimer(withTimeInterval: Self.clockTickInterval, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.clockTick &+= 1 }
             }
         }
     }
@@ -151,7 +160,7 @@ final class UsageStore: ObservableObject {
     /// - No rate-limit data at all: `—%`
     var menuBarText: String {
         guard let pct = fiveHourDisplayPercent else { return "—%" }
-        return isStale ? "~\(Int(pct))%" : "\(Int(pct))%"
+        return (isStale ? "~" : "") + UsageFormat.percent(pct)
     }
 
     /// Single-string composition of percent + countdown for the menu bar label.
@@ -159,8 +168,8 @@ final class UsageStore: ObservableObject {
     /// about rendering multiple sibling `Text` views — only the first reliably
     /// makes it to the bar. Combining into one string fixes that.
     ///
-    /// Wrapped in square brackets so the asterisk + percent + countdown read
-    /// as one grouped unit in a crowded menu bar. Brackets render cleanly
+    /// Wrapped in square brackets so the percent + countdown read as one
+    /// grouped unit next to the asterisk in a crowded menu bar. Brackets render cleanly
     /// because they're plain text — unlike Capsule overlays, which the menu
     /// bar's NSStatusItem layer silently drops.
     var menuBarFullText: String {
@@ -196,13 +205,17 @@ final class UsageStore: ObservableObject {
     /// while stale (the last-known value is still directionally right) and drop
     /// to gray only when we have no rate-limit data at all.
     var usageLevel: UsageLevel {
-        guard let pct = fiveHourDisplayPercent else { return .unknown }
-        if pct >= 85 { return .critical }
-        if pct >= 60 { return .warning }
-        return .normal
+        fiveHourDisplayPercent.map(UsageLevel.init(percent:)) ?? .unknown
     }
 
     enum UsageLevel {
         case normal, warning, critical, unknown
+
+        /// Green below 60%, orange from 60%, red from 85%.
+        init(percent: Double) {
+            if percent >= 85 { self = .critical }
+            else if percent >= 60 { self = .warning }
+            else { self = .normal }
+        }
     }
 }

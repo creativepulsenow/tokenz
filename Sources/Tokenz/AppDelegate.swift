@@ -11,26 +11,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     let loginItem = LoginItemController()
     let connection = ClaudeCodeConnection()
     private var fileWatcher: FileWatcher?
+    private var tidyTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let path = Self.dataFilePath()
-        Self.tidyDataDirectory()
+        // Housekeeping now, and daily for an app that stays open for months.
+        AppPaths.tidy()
+        tidyTimer = Timer.scheduledTimer(withTimeInterval: 24 * 3600, repeats: true) { _ in AppPaths.tidy() }
 
-        let watcher = FileWatcher(path: path) { [weak self] data in
+        let watcher = FileWatcher(path: AppPaths.usageFile()) { [weak self] data in
             Task { @MainActor in
                 guard let self = self else { return }
                 self.store.update(from: data)
 
                 if let pct = self.store.fiveHourPercent {
                     self.alertManager.checkAndAlert(
-                        metric: "5-hour session",
+                        metric: .fiveHour,
                         percent: pct,
                         resetsAt: self.store.fiveHourResetsAt
                     )
                 }
                 if let pct = self.store.sevenDayPercent {
                     self.alertManager.checkAndAlert(
-                        metric: "7-day weekly",
+                        metric: .sevenDay,
                         percent: pct,
                         resetsAt: self.store.sevenDayResetsAt
                     )
@@ -43,58 +45,5 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     func applicationWillTerminate(_ notification: Notification) {
         fileWatcher?.stop()
-    }
-
-    /// Returns the app's data directory, creating it (owner-only) if needed.
-    /// Nonisolated: `--statusline` mode calls this without starting the app.
-    nonisolated static func dataDirectoryPath() -> String {
-        let dir = FileManager.default
-            .urls(for: .applicationSupportDirectory, in: .userDomainMask)
-            .first!
-            .appendingPathComponent("Tokenz", isDirectory: true)
-        try? FileManager.default.createDirectory(
-            at: dir, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
-        return dir.path
-    }
-
-    /// Where `--statusline` keeps one small record per Claude Code session.
-    nonisolated static func sessionsDirectoryPath() -> String {
-        let dir = (dataDirectoryPath() as NSString).appendingPathComponent("sessions")
-        try? FileManager.default.createDirectory(
-            atPath: dir, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
-        return dir
-    }
-
-    /// Returns the path to the shared usage data file.
-    nonisolated static func dataFilePath() -> String {
-        (dataDirectoryPath() as NSString).appendingPathComponent("usage.json")
-    }
-
-    /// Housekeeping: make a directory created by an earlier version
-    /// owner-only, drop records of long-finished sessions, and remove temp
-    /// files the old bash status line left behind when Claude Code canceled
-    /// it mid-write.
-    private static func tidyDataDirectory() {
-        let fm = FileManager.default
-        let dir = dataDirectoryPath()
-        try? fm.setAttributes([.posixPermissions: 0o700], ofItemAtPath: dir)
-        // Records of Claude Code sessions that ended long ago.
-        let sessions = sessionsDirectoryPath()
-        let twoWeeksAgo = Date().addingTimeInterval(-14 * 86_400)
-        for name in (try? fm.contentsOfDirectory(atPath: sessions)) ?? [] {
-            let path = (sessions as NSString).appendingPathComponent(name)
-            if let modified = (try? fm.attributesOfItem(atPath: path))?[.modificationDate] as? Date,
-               modified < twoWeeksAgo {
-                try? fm.removeItem(atPath: path)
-            }
-        }
-        let hourAgo = Date().addingTimeInterval(-3600)
-        for name in (try? fm.contentsOfDirectory(atPath: dir)) ?? [] where name.hasPrefix("usage.json.tmp.") {
-            let path = (dir as NSString).appendingPathComponent(name)
-            if let modified = (try? fm.attributesOfItem(atPath: path))?[.modificationDate] as? Date,
-               modified < hourAgo {
-                try? fm.removeItem(atPath: path)
-            }
-        }
     }
 }

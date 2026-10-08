@@ -1,3 +1,5 @@
+> **Historical document.** This is the original plan for version 1.0, when the app was called ClaudeMonitor and was set up with a bash script, `install.sh` and `jq`. None of that exists anymore: since 1.3 the app binary is its own status line command and setup is a button in the app. Kept for the design reasoning only; see the README for how Tokenz works today.
+
 # Claude macOS Monitor — Technical Plan v3
 
 **Status:** Updated May 3, 2026

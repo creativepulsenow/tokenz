@@ -8,28 +8,53 @@
 
 /* Begin PBXBuildFile section */
 		0333A78D40493E29C4DEAF6B /* AlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAC93AD756ABD7461D4773A6 /* AlertManager.swift */; };
+		0E8C7EEB89EEE28723EDBE05 /* AppPaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B000639E967248ACF71F7D4 /* AppPaths.swift */; };
 		1292A468043C5D33DACAB768 /* SettingsEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6D2D5E30AC79EAD6D46F501 /* SettingsEditor.swift */; };
+		223E715D259BCF4AB1643AB3 /* SettingsEditorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86EA805842BE51C8D45A0494 /* SettingsEditorTests.swift */; };
 		2F401F2B15DA02C43BC54E1A /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A636E7850F60BEE06B1B30 /* FileWatcher.swift */; };
+		3B75D903149A9FBF0BDCCD18 /* SettingsEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6D2D5E30AC79EAD6D46F501 /* SettingsEditor.swift */; };
 		4733D066E0D5BAE1B0EE2C5D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF41E274493AEAF8B24D9157 /* Models.swift */; };
+		4E69CBFD31D8FA3A809D0C7F /* ConnectionCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A09F176AFA3C820BF77B9A /* ConnectionCommandTests.swift */; };
 		539EBAACF2C0113BE79430B0 /* StatusLineCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 382B31391A57DF8889E17545 /* StatusLineCommand.swift */; };
 		62EB599B5074D0FA03C6BDAF /* LoginItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1538AEE4A04E171D268D0C44 /* LoginItemController.swift */; };
+		7708F6CF6081BA412D1B6414 /* UsageFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DABCD677DFB82E88C0D8B5B /* UsageFormat.swift */; };
 		77614EDD0BF23FF02BCCA3B0 /* UsagePopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC146D6C80CFAEA7C6D0C1BE /* UsagePopoverView.swift */; };
+		7A34472E4F11042E01A6BF23 /* UsageMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2023C684DDB6EA7EB49BE2 /* UsageMerge.swift */; };
+		837A203413689F1A43342B40 /* AlertRulesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7099A57CD0CB3A91B5CF61BC /* AlertRulesTests.swift */; };
 		893858A28DDE2216CECC4389 /* UsageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6E146651A28C671D3F53CEB /* UsageStore.swift */; };
+		8C7FD94720786AAF1B3B2C31 /* ClaudeCodeConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D504F52DA8E3F82EA6221E /* ClaudeCodeConnection.swift */; };
 		A21B2704AFA3D96009DFB7AC /* ClaudeCodeConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D504F52DA8E3F82EA6221E /* ClaudeCodeConnection.swift */; };
+		A94B8AC5045A9180ECEA565E /* UsageFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DABCD677DFB82E88C0D8B5B /* UsageFormat.swift */; };
+		AA0BC132BE5799A917D3A318 /* UsageMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2023C684DDB6EA7EB49BE2 /* UsageMerge.swift */; };
+		AB94E295A2384509BB60BC4E /* AlertRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89EE4C893545F3D84D5C64D7 /* AlertRules.swift */; };
 		C1012F9CA4C46D57B35D4F19 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3C63F2021D2DB6143B9991 /* AppDelegate.swift */; };
 		C43C4F979F8289563F81889D /* TokenzApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223D0B9FF5F8F322C4EDB22B /* TokenzApp.swift */; };
+		C89F15A12B1FB570E13F74B9 /* UsageMergeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49E544006FEDDCD7584635B6 /* UsageMergeTests.swift */; };
+		CFBAF540C64A808C4C0AD1C6 /* UsageFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A87DE5E6068F3667809A496 /* UsageFormatTests.swift */; };
 		E9DAE59080F6D26F7B235CED /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8C91899C40B4DC574C671307 /* Assets.xcassets */; };
+		F7D6248649BCAE3E5FDBDBA1 /* AlertRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89EE4C893545F3D84D5C64D7 /* AlertRules.swift */; };
+		FC9BC690AA3F9A6CB7E02E04 /* AppPaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B000639E967248ACF71F7D4 /* AppPaths.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1538AEE4A04E171D268D0C44 /* LoginItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemController.swift; sourceTree = "<group>"; };
 		223D0B9FF5F8F322C4EDB22B /* TokenzApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenzApp.swift; sourceTree = "<group>"; };
+		2DABCD677DFB82E88C0D8B5B /* UsageFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageFormat.swift; sourceTree = "<group>"; };
 		382B31391A57DF8889E17545 /* StatusLineCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusLineCommand.swift; sourceTree = "<group>"; };
+		49E544006FEDDCD7584635B6 /* UsageMergeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageMergeTests.swift; sourceTree = "<group>"; };
 		56D504F52DA8E3F82EA6221E /* ClaudeCodeConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeConnection.swift; sourceTree = "<group>"; };
 		5928EA4EC1051E7FED68676C /* Tokenz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tokenz.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6B000639E967248ACF71F7D4 /* AppPaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPaths.swift; sourceTree = "<group>"; };
+		7099A57CD0CB3A91B5CF61BC /* AlertRulesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertRulesTests.swift; sourceTree = "<group>"; };
+		86EA805842BE51C8D45A0494 /* SettingsEditorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsEditorTests.swift; sourceTree = "<group>"; };
+		89EE4C893545F3D84D5C64D7 /* AlertRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertRules.swift; sourceTree = "<group>"; };
 		8A3C63F2021D2DB6143B9991 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		8C91899C40B4DC574C671307 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9A87DE5E6068F3667809A496 /* UsageFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageFormatTests.swift; sourceTree = "<group>"; };
+		9D2023C684DDB6EA7EB49BE2 /* UsageMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageMerge.swift; sourceTree = "<group>"; };
+		A4DE03D37E063C3FEECC9B3E /* TokenzTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TokenzTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAC93AD756ABD7461D4773A6 /* AlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertManager.swift; sourceTree = "<group>"; };
+		B9A09F176AFA3C820BF77B9A /* ConnectionCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionCommandTests.swift; sourceTree = "<group>"; };
 		C4A636E7850F60BEE06B1B30 /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
 		CC146D6C80CFAEA7C6D0C1BE /* UsagePopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsagePopoverView.swift; sourceTree = "<group>"; };
 		DF41E274493AEAF8B24D9157 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
@@ -50,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				5928EA4EC1051E7FED68676C /* Tokenz.app */,
+				A4DE03D37E063C3FEECC9B3E /* TokenzTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -58,7 +84,9 @@
 			isa = PBXGroup;
 			children = (
 				AAC93AD756ABD7461D4773A6 /* AlertManager.swift */,
+				89EE4C893545F3D84D5C64D7 /* AlertRules.swift */,
 				8A3C63F2021D2DB6143B9991 /* AppDelegate.swift */,
+				6B000639E967248ACF71F7D4 /* AppPaths.swift */,
 				56D504F52DA8E3F82EA6221E /* ClaudeCodeConnection.swift */,
 				C4A636E7850F60BEE06B1B30 /* FileWatcher.swift */,
 				1538AEE4A04E171D268D0C44 /* LoginItemController.swift */,
@@ -66,10 +94,20 @@
 				E6D2D5E30AC79EAD6D46F501 /* SettingsEditor.swift */,
 				382B31391A57DF8889E17545 /* StatusLineCommand.swift */,
 				223D0B9FF5F8F322C4EDB22B /* TokenzApp.swift */,
+				2DABCD677DFB82E88C0D8B5B /* UsageFormat.swift */,
+				9D2023C684DDB6EA7EB49BE2 /* UsageMerge.swift */,
 				CC146D6C80CFAEA7C6D0C1BE /* UsagePopoverView.swift */,
 				E6E146651A28C671D3F53CEB /* UsageStore.swift */,
 			);
 			path = Tokenz;
+			sourceTree = "<group>";
+		};
+		440F9E3CBFE57C516670A900 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				AA100A4DE0A4FA02220B2085 /* TokenzTests */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		5169CAEED4C966027AFB43FF /* Sources */ = {
@@ -85,13 +123,43 @@
 			children = (
 				0652A200AE5A298D3B9EAF44 /* Resources */,
 				5169CAEED4C966027AFB43FF /* Sources */,
+				440F9E3CBFE57C516670A900 /* Tests */,
 				180861342DB32A96E849368C /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		AA100A4DE0A4FA02220B2085 /* TokenzTests */ = {
+			isa = PBXGroup;
+			children = (
+				7099A57CD0CB3A91B5CF61BC /* AlertRulesTests.swift */,
+				B9A09F176AFA3C820BF77B9A /* ConnectionCommandTests.swift */,
+				86EA805842BE51C8D45A0494 /* SettingsEditorTests.swift */,
+				9A87DE5E6068F3667809A496 /* UsageFormatTests.swift */,
+				49E544006FEDDCD7584635B6 /* UsageMergeTests.swift */,
+			);
+			path = TokenzTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		13686A2C89A9BE8186A43486 /* TokenzTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C20571585BC2B053418D8D45 /* Build configuration list for PBXNativeTarget "TokenzTests" */;
+			buildPhases = (
+				43C662C593A463F22593065D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TokenzTests;
+			packageProductDependencies = (
+			);
+			productName = TokenzTests;
+			productReference = A4DE03D37E063C3FEECC9B3E /* TokenzTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		CB6DF47262A7B85E5D41B26D /* Tokenz */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E25783C542207A4C1C013256 /* Build configuration list for PBXNativeTarget "Tokenz" */;
@@ -119,6 +187,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
+					13686A2C89A9BE8186A43486 = {
+						ProvisioningStyle = Manual;
+					};
 					CB6DF47262A7B85E5D41B26D = {
 						ProvisioningStyle = Manual;
 					};
@@ -139,6 +210,7 @@
 			projectRoot = "";
 			targets = (
 				CB6DF47262A7B85E5D41B26D /* Tokenz */,
+				13686A2C89A9BE8186A43486 /* TokenzTests */,
 			);
 		};
 /* End PBXProject section */
@@ -160,7 +232,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				0333A78D40493E29C4DEAF6B /* AlertManager.swift in Sources */,
+				F7D6248649BCAE3E5FDBDBA1 /* AlertRules.swift in Sources */,
 				C1012F9CA4C46D57B35D4F19 /* AppDelegate.swift in Sources */,
+				FC9BC690AA3F9A6CB7E02E04 /* AppPaths.swift in Sources */,
 				A21B2704AFA3D96009DFB7AC /* ClaudeCodeConnection.swift in Sources */,
 				2F401F2B15DA02C43BC54E1A /* FileWatcher.swift in Sources */,
 				62EB599B5074D0FA03C6BDAF /* LoginItemController.swift in Sources */,
@@ -168,8 +242,28 @@
 				1292A468043C5D33DACAB768 /* SettingsEditor.swift in Sources */,
 				539EBAACF2C0113BE79430B0 /* StatusLineCommand.swift in Sources */,
 				C43C4F979F8289563F81889D /* TokenzApp.swift in Sources */,
+				7708F6CF6081BA412D1B6414 /* UsageFormat.swift in Sources */,
+				AA0BC132BE5799A917D3A318 /* UsageMerge.swift in Sources */,
 				77614EDD0BF23FF02BCCA3B0 /* UsagePopoverView.swift in Sources */,
 				893858A28DDE2216CECC4389 /* UsageStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43C662C593A463F22593065D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AB94E295A2384509BB60BC4E /* AlertRules.swift in Sources */,
+				837A203413689F1A43342B40 /* AlertRulesTests.swift in Sources */,
+				0E8C7EEB89EEE28723EDBE05 /* AppPaths.swift in Sources */,
+				8C7FD94720786AAF1B3B2C31 /* ClaudeCodeConnection.swift in Sources */,
+				4E69CBFD31D8FA3A809D0C7F /* ConnectionCommandTests.swift in Sources */,
+				3B75D903149A9FBF0BDCCD18 /* SettingsEditor.swift in Sources */,
+				223E715D259BCF4AB1643AB3 /* SettingsEditorTests.swift in Sources */,
+				A94B8AC5045A9180ECEA565E /* UsageFormat.swift in Sources */,
+				CFBAF540C64A808C4C0AD1C6 /* UsageFormatTests.swift in Sources */,
+				7A34472E4F11042E01A6BF23 /* UsageMerge.swift in Sources */,
+				C89F15A12B1FB570E13F74B9 /* UsageMergeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -224,12 +318,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = Resources/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.creativepulsenow.tokenz;
-				PRODUCT_NAME = Tokenz;
+				OTHER_SWIFT_FLAGS = "$(inherited) -file-prefix-map $(SRCROOT)=.";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -241,9 +334,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
-				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
@@ -254,10 +345,27 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -file-prefix-map $(SRCROOT)=.";
+				PRODUCT_BUNDLE_IDENTIFIER = com.creativepulsenow.tokenz;
+				PRODUCT_NAME = Tokenz;
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
+			};
+			name = Release;
+		};
+		CDE57D379C763E868E3027AD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.creativepulsenow.tokenz.tests;
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
@@ -315,13 +423,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = Resources/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.creativepulsenow.tokenz;
-				PRODUCT_NAME = Tokenz;
+				OTHER_SWIFT_FLAGS = "$(inherited) -file-prefix-map $(SRCROOT)=.";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -329,22 +436,35 @@
 			};
 			name = Debug;
 		};
+		E7024C49B612F1E8435AF262 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.creativepulsenow.tokenz.tests;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
 		E74A3AAA7B3B479C49BBBB61 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
-				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = NO;
-				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -file-prefix-map $(SRCROOT)=.";
+				PRODUCT_BUNDLE_IDENTIFIER = com.creativepulsenow.tokenz;
+				PRODUCT_NAME = Tokenz;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -357,6 +477,15 @@
 			buildConfigurations = (
 				DCC4DD96CF47CB2CC3F337F4 /* Debug */,
 				9D280D86FB986A05E247D4AD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C20571585BC2B053418D8D45 /* Build configuration list for PBXNativeTarget "TokenzTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7024C49B612F1E8435AF262 /* Debug */,
+				CDE57D379C763E868E3027AD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

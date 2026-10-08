@@ -1,6 +1,6 @@
 import Foundation
 
-/// JSON structure written by the status line script to ~/Library/Application Support/Tokenz/usage.json
+/// The contents of usage.json, as written by `Tokenz --statusline`.
 struct UsageFileData: Codable {
     let fiveHour: RateLimitWindow?
     let sevenDay: RateLimitWindow?

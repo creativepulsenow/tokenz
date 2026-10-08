@@ -2,10 +2,12 @@ import Foundation
 import ServiceManagement
 
 /// Manages launch-at-login using SMAppService (macOS 13+).
-/// Requires the app to be ad-hoc signed and located in /Applications.
+/// The app has to be signed and stay where it is: macOS registers the path.
 @MainActor
 final class LoginItemController: ObservableObject {
     @Published private(set) var isEnabled: Bool = false
+    /// Why the last change didn't take, shown under the toggle.
+    @Published private(set) var lastError: String?
 
     init() {
         refresh()
@@ -24,9 +26,13 @@ final class LoginItemController: ObservableObject {
             } else {
                 try SMAppService.mainApp.unregister()
             }
+            lastError = nil
         } catch {
-            NSLog("Tokenz: Login item update failed: \(error.localizedDescription)")
+            lastError = "Couldn't change Launch at Login: \(error.localizedDescription)"
         }
         refresh()
+        if enabled, SMAppService.mainApp.status == .requiresApproval {
+            lastError = "Allow Tokenz under System Settings → General → Login Items."
+        }
     }
 }

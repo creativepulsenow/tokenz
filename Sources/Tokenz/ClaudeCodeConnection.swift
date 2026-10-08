@@ -1,8 +1,9 @@
+import Combine
 import Foundation
 
 /// Connects the app to Claude Code by pointing the `statusLine` entry in
 /// ~/.claude/settings.json at this app's binary (`--statusline` mode), and
-/// undoes it again. Replaces the old install.sh + bash script + jq setup.
+/// undoes it again.
 @MainActor
 final class ClaudeCodeConnection: ObservableObject {
     enum State: Equatable {
@@ -29,20 +30,26 @@ final class ClaudeCodeConnection: ObservableObject {
         case danglingSymlink
         /// Claude Code (or the user) rewrote the file while we were editing it.
         case changedUnderneath
+        /// The user made the file read-only. That is theirs to undo, not ours.
+        case readOnly
     }
 
     @Published private(set) var state: State = .notConnected
-    /// Outcome of the last Connect / Disconnect, shown in the popover.
+    /// Outcome of the last Connect / Disconnect, shown in the popover until
+    /// it is next opened.
     @Published private(set) var message: String?
+    /// The user's own status line that `--statusline` also runs, if any.
+    /// Shown in the popover so nothing runs that the user can't see.
+    @Published private(set) var chained: String?
 
     private let settingsURL: URL
     private let executablePath: String
 
     /// A settings file is a few KB. Refuse to load anything that couldn't be one.
     private static let maxSettingsBytes = 5_242_880
-    /// How many of our own settings backups to keep.
+    /// How many settings backups to keep.
     private static let backupsToKeep = 5
-    private static let backupPrefix = "settings.json.tokenz-backup-"
+    private static let backupPrefix = "settings-"
 
     init(settingsURL: URL = ClaudeCodeConnection.defaultSettingsURL,
          executablePath: String = Bundle.main.executablePath ?? CommandLine.arguments[0]) {
@@ -63,7 +70,11 @@ final class ClaudeCodeConnection: ObservableObject {
 
     /// Re-read the settings. Call on launch and when the popover opens, since
     /// the user (or Claude Code) can edit the file at any time.
-    func refresh() {
+    /// - Parameter clearingMessage: pass true when the popover opens, so the
+    ///   result of an earlier Connect / Disconnect doesn't linger.
+    func refresh(clearingMessage: Bool = false) {
+        if clearingMessage { message = nil }
+        chained = Self.chainedCommand()
         if executablePath.contains("/AppTranslocation/") || executablePath.hasPrefix("/Volumes/") {
             state = .appNotInstalled
             return
@@ -77,7 +88,9 @@ final class ClaudeCodeConnection: ObservableObject {
 
     private func classify(_ command: String?) -> State {
         guard let command = command, !command.isEmpty else { return .notConnected }
-        if command == ourCommand { return .connected }
+        // Compare what the command runs, not how it is quoted: a hand-written
+        // entry for this same binary is connected too.
+        if Self.binaryPath(in: command) == executablePath { return .connected }
         return Self.isOurs(command) ? .needsUpdate : .otherStatusLine
     }
 
@@ -140,6 +153,8 @@ final class ClaudeCodeConnection: ObservableObject {
             return "Claude Code's settings changed while updating. Nothing was changed; try again."
         case ConnectionError.danglingSymlink:
             return "settings.json is a link to a file that doesn't exist. Nothing was changed."
+        case ConnectionError.readOnly:
+            return "settings.json is read-only. Nothing was changed."
         default:
             return "Couldn't update Claude Code's settings. Nothing was changed."
         }
@@ -153,15 +168,27 @@ final class ClaudeCodeConnection: ObservableObject {
     /// mentions one of them (a wrapper, a pipeline, a comment) is the user's
     /// own, and must be kept and chained, not replaced.
     nonisolated static func isOurs(_ command: String) -> Bool {
-        let command = command.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let script = singleShellWord(command) {
-            return (script as NSString).lastPathComponent == "claude-monitor-statusline.sh"
+        if binaryPath(in: command) != nil { return true }
+        guard let script = singleShellWord(command.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+            return false
         }
-        let suffix = " --statusline"
-        guard command.hasSuffix(suffix),
-              let path = singleShellWord(String(command.dropLast(suffix.count))) else { return false }
-        return path.hasSuffix("/Tokenz.app/Contents/MacOS/Tokenz")
+        return (script as NSString).lastPathComponent == "claude-monitor-statusline.sh"
+    }
+
+    /// If `command` is exactly `<path to the app's binary> --statusline`, the
+    /// path. The binary may be under this name or the one the app had before
+    /// it was called Tokenz.
+    nonisolated static func binaryPath(in command: String) -> String? {
+        let command = command.trimmingCharacters(in: .whitespacesAndNewlines)
+        let flag = "--statusline"
+        guard command.hasSuffix(flag) else { return nil }
+        let rest = command.dropLast(flag.count)
+        // The flag must be its own word.
+        guard let separator = rest.last, separator == " " || separator == "\t",
+              let path = singleShellWord(rest.trimmingCharacters(in: .whitespaces)) else { return nil }
+        let isBinary = path.hasSuffix("/Tokenz.app/Contents/MacOS/Tokenz")
             || path.hasSuffix("/ClaudeMonitor.app/Contents/MacOS/ClaudeMonitor")
+        return isBinary ? path : nil
     }
 
     /// If `text` is exactly one plain shell word (bare, single-quoted or
@@ -178,7 +205,8 @@ final class ClaudeCodeConnection: ObservableObject {
             let inner = String(text.dropFirst().dropLast())
             return inner.contains(where: { "\"$`\\".contains($0) }) ? nil : inner
         }
-        let special = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "'\"|;&<>$`\\()#*?[]{}!"))
+        // `=` would make the shell read the word as a variable assignment.
+        let special = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "'\"|;&<>$`\\()#*?[]{}!="))
         return text.unicodeScalars.contains(where: special.contains) ? nil : text
     }
 
@@ -205,76 +233,91 @@ final class ClaudeCodeConnection: ObservableObject {
         return try Data(contentsOf: target)
     }
 
-    /// Backs the file up next to itself, then replaces it atomically. Writes
-    /// through a symlink to its target so dotfile managers (stow, chezmoi,
-    /// yadm) keep working, and keeps the file's permissions. Refuses if the
-    /// file no longer holds `original`, so a concurrent edit is never lost.
+    /// Backs the file up, then replaces it in one step. Writes through a
+    /// symlink to its target so dotfile managers (stow, chezmoi, yadm) keep
+    /// working, and keeps the file's permissions. Refuses if the file no
+    /// longer holds `original`, which makes losing a concurrent edit very
+    /// unlikely (the check and the replace are not one atomic operation).
     private func writeSettings(_ data: Data, replacing original: Data?) throws {
         let fm = FileManager.default
-        let directory = settingsURL.deletingLastPathComponent()
-        try fm.createDirectory(at: directory, withIntermediateDirectories: true)
+        try fm.createDirectory(at: settingsURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         guard try readSettings() == original else { throw ConnectionError.changedUnderneath }
 
         let target = settingsURL.resolvingSymlinksInPath()
-        var permissions: Any = 0o600
-        if original != nil {
-            permissions = (try fm.attributesOfItem(atPath: target.path))[.posixPermissions] ?? permissions
-            try backUp(original: target, into: directory)
+        var permissions: mode_t = 0o600
+        if let original = original {
+            guard fm.isWritableFile(atPath: target.path) else { throw ConnectionError.readOnly }
+            if let mode = (try fm.attributesOfItem(atPath: target.path))[.posixPermissions] as? NSNumber {
+                permissions = mode_t(mode.uint16Value) & 0o777
+            }
+            try backUp(original)
         }
-        try data.write(to: target, options: .atomic)
-        try? fm.setAttributes([.posixPermissions: permissions], ofItemAtPath: target.path)
+        guard AppPaths.writeAtomically(data, to: target.path, permissions: permissions) else {
+            throw CocoaError(.fileWriteUnknown)
+        }
     }
 
-    /// Saves a private copy of the settings file and prunes old copies.
-    /// Backups are full copies and can hold whatever the user keeps in
-    /// settings.json (`env` values, for instance), so they are owner-only,
-    /// never overwritten, and only the newest few are kept.
-    private func backUp(original: URL, into directory: URL) throws {
+    /// Saves a copy of the settings file and prunes old copies. Backups are
+    /// full copies and can hold whatever the user keeps in settings.json
+    /// (`env` values, for instance), so they live in the app's own owner-only
+    /// directory, not next to a file that may sit in a dotfiles repo. They
+    /// are never overwritten, and only the newest few are kept.
+    private func backUp(_ contents: Data) throws {
         let fm = FileManager.default
+        let directory = AppPaths.settingsBackupsDirectory()
         let stamp = DateFormatter()
         stamp.locale = Locale(identifier: "en_US_POSIX")
         stamp.dateFormat = "yyyyMMdd-HHmmss"
         let base = Self.backupPrefix + stamp.string(from: Date())
-        var backup = directory.appendingPathComponent(base)
+        var name = base + ".json"
         var counter = 2
-        while fm.fileExists(atPath: backup.path) {
-            backup = directory.appendingPathComponent("\(base)-\(counter)")
+        while fm.fileExists(atPath: (directory as NSString).appendingPathComponent(name)) {
+            name = "\(base)-\(counter).json"
             counter += 1
         }
-        try fm.copyItem(at: original, to: backup)
-        try? fm.setAttributes([.posixPermissions: 0o600], ofItemAtPath: backup.path)
+        guard AppPaths.writeAtomically(contents, to: (directory as NSString).appendingPathComponent(name)) else {
+            throw CocoaError(.fileWriteUnknown)
+        }
 
-        // Names sort by time, so the oldest come first.
-        let ours = ((try? fm.contentsOfDirectory(atPath: directory.path)) ?? [])
-            .filter { $0.hasPrefix(Self.backupPrefix) }
+        // Names sort by time, so the oldest come first. Only ever delete
+        // plain files that carry our exact naming.
+        let pattern = "^settings-[0-9]{8}-[0-9]{6}(-[0-9]+)?\\.json$"
+        let ours = ((try? fm.contentsOfDirectory(atPath: directory)) ?? [])
+            .filter { $0.range(of: pattern, options: .regularExpression) != nil }
             .sorted()
-        for name in ours.dropLast(Self.backupsToKeep) {
-            try? fm.removeItem(at: directory.appendingPathComponent(name))
+        for old in ours.dropLast(Self.backupsToKeep) {
+            let path = (directory as NSString).appendingPathComponent(old)
+            if (try? fm.attributesOfItem(atPath: path))?[.type] as? FileAttributeType == .typeRegular {
+                try? fm.removeItem(atPath: path)
+            }
         }
     }
 
     // MARK: - The user's previous status line
 
-    private nonisolated static var chainedCommandURL: URL {
-        URL(fileURLWithPath: AppDelegate.dataDirectoryPath()).appendingPathComponent("chained-statusline-command")
-    }
-
     /// The status line command the user had before connecting, if any.
     /// Read by `--statusline` on every run, so it stays cheap.
     nonisolated static func chainedCommand() -> String? {
-        guard let text = try? String(contentsOf: chainedCommandURL, encoding: .utf8) else { return nil }
-        let command = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let data = AppPaths.readSmallFile(AppPaths.chainedCommandFile()) else { return nil }
+        let command = String(decoding: data, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
         // Never chain to ourselves. (`--statusline` also guards against
         // indirect loops with an environment marker.)
         return command.isEmpty || isOurs(command) ? nil : command
     }
 
     private nonisolated static func saveChainedCommand(_ command: String) throws {
-        try Data(command.utf8).write(to: chainedCommandURL, options: .atomic)
-        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: chainedCommandURL.path)
+        guard AppPaths.writeAtomically(Data(command.utf8), to: AppPaths.chainedCommandFile()) else {
+            throw CocoaError(.fileWriteUnknown)
+        }
     }
 
     private nonisolated static func clearChainedCommand() {
-        try? FileManager.default.removeItem(at: chainedCommandURL)
+        try? FileManager.default.removeItem(atPath: AppPaths.chainedCommandFile())
+    }
+
+    /// Stops running the user's previous status line alongside Tokenz.
+    func removeChainedCommand() {
+        Self.clearChainedCommand()
+        refresh()
     }
 }
