@@ -2,6 +2,11 @@
 
 Each release's section below is also its release notes.
 
+## 1.4.4
+
+- **Built in the open.** This is the first release built by GitHub Actions from the tagged commit, with a signed provenance record you can check.
+- No changes to how the app behaves.
+
 ## 1.4.3
 
 - **The menu bar icon is now color-coded:** green under 60%, orange from 60%, red from 85%.

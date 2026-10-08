@@ -167,7 +167,7 @@ Use it as background information. If hitting a window mid-task would cost you re
 - **No sandbox.** The app has to edit `~/.claude/settings.json` and share an Application Support path with the `--statusline` process that Claude Code launches.
 - **Not notarized yet.** The app is ad-hoc signed, so macOS can't verify who built it. Check the SHA-256 on the release page, or build from source.
 
-- **Releases are built in the open.** From the release after 1.4.3 on, each DMG is built by GitHub Actions from the tagged commit and published with a signed provenance record. To check a download: `gh attestation verify Tokenz-<version>.dmg -R creativepulsenow/tokenz`.
+- **Releases are built in the open.** From 1.4.4 on, each DMG is built by GitHub Actions from the tagged commit and published with a signed provenance record. To check a download: `gh attestation verify Tokenz-<version>.dmg -R creativepulsenow/tokenz`.
 
 To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
