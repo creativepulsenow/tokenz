@@ -16,9 +16,10 @@ and 7-day weekly windows. Click for exact percentages, time until each
 window resets, and a Launch-at-Login toggle. Get a notification at 70%,
 85%, and 95% so you know before you hit the wall.
 
-No daemons. No polling. No network. ClaudeMonitor reads the rate-limit
-data Claude Code already pipes to its status-line script, writes it to a
-small local JSON file, and watches that file for changes. That's it.
+No daemons. No network. No account sign-in. ClaudeMonitor reads the
+rate-limit data Claude Code already hands to its status line command,
+writes it to a small local JSON file, and watches that file for changes.
+That's it.
 
 ## Why this exists
 
@@ -32,7 +33,8 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 - **Threshold notifications** — one alert per threshold crossing per window. No storms on first install at 95%.
 - **Honest about uncertainty** — past 90 seconds without a fresh update, the menu bar prefixes the last-known number with a tilde (`~94%`) to signal "approximate." The number stays up for as long as its 5-hour window lasts; once the window rolls over it shows `~0%`. The popover shows a warning banner the whole time.
 - **Launch at Login** — one-click toggle, backed by `SMAppService`.
-- **Tiny** — ~600 lines of Swift, ~120 lines of bash. Zero third-party dependencies.
+- **One-click setup** — a **Connect to Claude Code** button in the app does the wiring. No Terminal, no Homebrew, no `jq`. If you already have a custom status line, it keeps showing.
+- **Tiny** — about 1,400 lines of Swift. Zero third-party dependencies.
 - **Private** — everything stays on your machine; the app makes zero network calls. Inputs are sanitized at the boundary so a misbehaving cohabitant can't crash or spoof the UI.
 
 ## Requirements
@@ -40,27 +42,38 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 - macOS 14.0 (Sonoma) or later
 - [Claude Code](https://claude.com/claude-code) installed
 - Claude.ai Pro or Max subscription (rate limit data only appears on these tiers)
-- `jq` — install with `brew install jq`
 
 ## Install (prebuilt)
 
-1. Download **`ClaudeMonitor-1.2.0.dmg`** from the [latest release](https://github.com/creativepulsenow/claude-usage-taskbar-macos/releases/latest).
+1. Download **`ClaudeMonitor-1.3.0.dmg`** from the [latest release](https://github.com/creativepulsenow/claude-usage-taskbar-macos/releases/latest).
 2. Open the DMG and drag `ClaudeMonitor.app` onto the Applications shortcut.
-   *(`SMAppService` for "Launch at Login" and notification permissions both require the app to live in `/Applications`.)*
-3. Open Terminal in the mounted DMG window and run `./install.sh`.
-   This wires up the Claude Code status-line bridge in `~/.claude/settings.json` (non-destructive merge — refuses if the file isn't valid JSON, follows symlinks for dotfile managers).
-4. Quit and relaunch Claude Code.
-5. Send any message in Claude Code so it pipes the first batch of usage data.
-6. Launch `ClaudeMonitor.app` from `/Applications`. **First time only:** macOS will say "ClaudeMonitor cannot be opened because the developer cannot be verified." Right-click the app → **Open** → confirm. (The app is ad-hoc signed; not yet notarized — every subsequent launch is normal.)
+   *(Connecting to Claude Code, "Launch at Login" and notifications all need the app to live in `/Applications`.)*
+3. Launch `ClaudeMonitor.app` from `/Applications`. **First time only:** macOS will refuse to open it because the app is ad-hoc signed and not yet notarized. Open **System Settings → Privacy & Security**, scroll down to the message about ClaudeMonitor, and click **Open Anyway**. (On macOS 14 you can instead right-click the app → **Open**.) Every later launch is normal.
+4. Click the menu bar item, then **Connect to Claude Code**.
+   This adds a `statusLine` entry to `~/.claude/settings.json`. The app saves a backup of the file first, changes nothing else in it, refuses if the file isn't valid JSON, and writes through symlinks so dotfile managers keep working.
+5. Quit and relaunch Claude Code, then send any message so it reports the first batch of usage data.
 
 You should see an asterisk and a percentage in your menu bar.
 
 The bundled `.app` is a universal binary (Apple Silicon + Intel).
 
+**Already have a status line?** Connect keeps it. ClaudeMonitor runs first, then hands the same input to your command and shows its output, so your status line looks the same as before.
+
+**Upgrading from 1.2 or earlier?** Your existing setup keeps working. The popover offers **Update Connection** to switch from the old `jq` script to the built-in one; afterward you can delete `~/.claude/claude-monitor-statusline.sh`.
+
+**Prefer to edit the file yourself?** Add this to `~/.claude/settings.json`:
+
+```json
+"statusLine": {
+  "type": "command",
+  "command": "'/Applications/ClaudeMonitor.app/Contents/MacOS/ClaudeMonitor' --statusline"
+}
+```
+
 ## Build from source
 
 ```bash
-brew install xcodegen jq
+brew install xcodegen
 xcodegen generate
 open ClaudeMonitor.xcodeproj
 ```
@@ -77,7 +90,7 @@ To produce the same DMG that ships in releases:
 ## How it works
 
 ```
-Claude Code ──(stdin JSON)──▶ status line script ──▶ ~/Library/Application Support/ClaudeMonitor/usage.json
+Claude Code ──(stdin JSON)──▶ ClaudeMonitor --statusline ──▶ ~/Library/Application Support/ClaudeMonitor/usage.json
                                                                         │
                                                        (DispatchSource FSEvents)
                                                                         │
@@ -86,12 +99,12 @@ Claude Code ──(stdin JSON)──▶ status line script ──▶ ~/Library/A
                                                             (menu bar + notifications)
 ```
 
-- Claude Code calls the status line script after each assistant message and pipes session JSON to it on stdin.
-- The script extracts `rate_limits` and writes it atomically to a small JSON file in Application Support.
-- The app watches that file with `DispatchSource.makeFileSystemObjectSource` and re-renders on every change.
+- Claude Code runs the app's binary in `--statusline` mode after each assistant message and pipes session JSON to it on stdin. In that mode the binary does its job in a few milliseconds and exits; it never opens a window.
+- It keeps only `rate_limits` and the model name, and writes them atomically to a small owner-only JSON file in Application Support.
+- The app watches that file with `DispatchSource.makeFileSystemObjectSource` and re-renders on every change. As a safety net it also checks the file's modification time every 10 seconds.
 - Alerts fire once per threshold per window; state persists in `UserDefaults` so restarts don't re-fire.
 
-**No network calls. No daemons. No polling.** The app makes zero API requests against Anthropic — it only reads what your local Claude tools have already pulled. ClaudeMonitor consumes **zero quota**.
+**No network calls. No daemons. No polling of Anthropic.** The app makes zero API requests against Anthropic — it only reads what your local Claude tools have already pulled. ClaudeMonitor consumes **zero quota**.
 
 ### Update cadence
 
@@ -153,24 +166,35 @@ Use it as background information. If hitting a window mid-task would cost you re
   `usage.json`.
 - Notifications fire at most one per threshold crossing per window. A first
   install at 95% gets one notification, not three.
-- The installer refuses to touch `~/.claude/settings.json` if the file isn't
-  valid JSON, and follows symlinks to their target so dotfile managers
-  (stow, chezmoi, yadm) keep working.
-- The app currently runs **without** the macOS sandbox so the unsandboxed
-  status line script and the app can share a single Application Support
-  path. A future release may move data into a sandbox container; the
-  external path will continue to work via a small shim.
+- The app reads `usage.json` only if it is a small regular file, never a
+  symlink or anything oversized. The file and its directory are owner-only.
+- Connect changes one entry in `~/.claude/settings.json` and nothing else. It
+  saves a timestamped backup next to the file first, re-parses its own edit
+  and refuses to write if anything other than `statusLine` would differ,
+  refuses to touch a file that isn't valid JSON, and writes through symlinks
+  so dotfile managers (stow, chezmoi, yadm) keep working.
+- The app never sees your Claude login. It has no access to tokens, the
+  Keychain, or your conversations: only the percentages Claude Code passes
+  to its status line.
+- Release builds use the hardened runtime and carry no debug entitlements.
+- The only program the app ever starts is your own previous status line
+  command, and only if you had one when you connected.
+- The app currently runs **without** the macOS sandbox, because it has to
+  edit `~/.claude/settings.json` and share an Application Support path with
+  the `--statusline` process that Claude Code launches.
+- The app is ad-hoc signed and not yet notarized, so macOS can't verify who
+  built it. Check the SHA-256 on the release page, or build from source.
 
 ## Uninstall
 
-1. Quit ClaudeMonitor.
-2. Move `ClaudeMonitor.app` to the Trash.
-3. Edit `~/.claude/settings.json` and remove the `statusLine` entry (or restore a previous one).
-4. Optional: `rm -rf ~/Library/Application\ Support/ClaudeMonitor`.
+1. Click the menu bar item, then **Disconnect from Claude Code**. This removes the `statusLine` entry from `~/.claude/settings.json`, or puts your previous status line back if you had one.
+2. Quit ClaudeMonitor.
+3. Move `ClaudeMonitor.app` to the Trash.
+4. Optional: `rm -rf ~/Library/Application\ Support/ClaudeMonitor`, and delete the `settings.json.claudemonitor-backup-*` files in `~/.claude`.
 
 ## Privacy
 
-All data stays on your machine. The status line script reads what Claude Code already pipes to it,
+All data stays on your machine. The status line command reads what Claude Code already pipes to it,
 writes it to a local file, and the menu bar app reads that local file. Nothing is sent anywhere.
 
 ## Disclaimer
@@ -181,7 +205,7 @@ trademarks of Anthropic, used here only to describe what the app integrates
 with (nominative fair use).
 
 The app reads only the rate-limit data that Claude Code already pipes to its
-status line script. If Anthropic changes that data shape, the app will
+status line command. If Anthropic changes that data shape, the app will
 gracefully show no data until updated.
 
 **No warranty. Use at your own risk.** Provided "as is" — see [LICENSE](LICENSE) for the full text. It will miss limit crossings sometimes, and it can't stop you from being charged or rate-limited. If overage actually matters for your work, don't rely on this app alone to catch it.
