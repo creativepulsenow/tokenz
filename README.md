@@ -44,7 +44,7 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 
 ## Install (prebuilt)
 
-1. Download **`ClaudeMonitor-1.1.0.dmg`** from the [latest release](https://github.com/creativepulsenow/claude-usage-taskbar-macos/releases/latest).
+1. Download **`ClaudeMonitor-1.2.0.dmg`** from the [latest release](https://github.com/creativepulsenow/claude-usage-taskbar-macos/releases/latest).
 2. Open the DMG and drag `ClaudeMonitor.app` onto the Applications shortcut.
    *(`SMAppService` for "Launch at Login" and notification permissions both require the app to live in `/Applications`.)*
 3. Open Terminal in the mounted DMG window and run `./install.sh`.
