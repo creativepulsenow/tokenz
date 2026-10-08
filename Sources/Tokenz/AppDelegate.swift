@@ -57,18 +57,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         return dir.path
     }
 
+    /// Where `--statusline` keeps one small record per Claude Code session.
+    nonisolated static func sessionsDirectoryPath() -> String {
+        let dir = (dataDirectoryPath() as NSString).appendingPathComponent("sessions")
+        try? FileManager.default.createDirectory(
+            atPath: dir, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        return dir
+    }
+
     /// Returns the path to the shared usage data file.
     nonisolated static func dataFilePath() -> String {
         (dataDirectoryPath() as NSString).appendingPathComponent("usage.json")
     }
 
-    /// Housekeeping for directories created by earlier versions: make the
-    /// directory owner-only, and remove temp files the old bash status line
-    /// left behind when Claude Code canceled it mid-write.
+    /// Housekeeping: make a directory created by an earlier version
+    /// owner-only, drop records of long-finished sessions, and remove temp
+    /// files the old bash status line left behind when Claude Code canceled
+    /// it mid-write.
     private static func tidyDataDirectory() {
         let fm = FileManager.default
         let dir = dataDirectoryPath()
         try? fm.setAttributes([.posixPermissions: 0o700], ofItemAtPath: dir)
+        // Records of Claude Code sessions that ended long ago.
+        let sessions = sessionsDirectoryPath()
+        let twoWeeksAgo = Date().addingTimeInterval(-14 * 86_400)
+        for name in (try? fm.contentsOfDirectory(atPath: sessions)) ?? [] {
+            let path = (sessions as NSString).appendingPathComponent(name)
+            if let modified = (try? fm.attributesOfItem(atPath: path))?[.modificationDate] as? Date,
+               modified < twoWeeksAgo {
+                try? fm.removeItem(atPath: path)
+            }
+        }
         let hourAgo = Date().addingTimeInterval(-3600)
         for name in (try? fm.contentsOfDirectory(atPath: dir)) ?? [] where name.hasPrefix("usage.json.tmp.") {
             let path = (dir as NSString).appendingPathComponent(name)

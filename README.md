@@ -101,6 +101,7 @@ Claude Code ──(stdin JSON)──▶ Tokenz --statusline ──▶ ~/Library/
 
 - Claude Code runs the app's binary in `--statusline` mode after each assistant message and pipes session JSON to it on stdin. In that mode the binary does its job in a few milliseconds and exits; it never opens a window.
 - It keeps only `rate_limits` and the model name, and writes them atomically to a small owner-only JSON file in Application Support.
+- With several Claude Code sessions open, each one re-runs the status line now and then with the numbers from its own last reply. Tokenz only accepts a reading from a session that has had a new reply since its last run, so an idle session can't overwrite the current number with an old one.
 - The app watches that file with `DispatchSource.makeFileSystemObjectSource` and re-renders on every change. As a safety net it also checks the file's modification time every 10 seconds.
 - Alerts fire once per threshold per window; state persists in `UserDefaults` so restarts don't re-fire.
 
