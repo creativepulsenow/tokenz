@@ -11,23 +11,19 @@ final class UsageStore: ObservableObject {
     @Published var modelName: String? = nil
     @Published var lastUpdated: Date? = nil
     @Published var isStale: Bool = true       // true after staleAfter seconds: show ~94%
-    @Published var isVeryStale: Bool = true   // true after veryStaleAfter seconds: show —%
     /// Bumped every 30s by `clockTickTimer` to force the menu bar countdown
     /// to re-render. The countdown depends on `Date()`, which isn't a
     /// publisher — ticking this property forces SwiftUI to re-evaluate.
     @Published private var clockTick: Int = 0
 
-    /// First staleness tier. Past this point the menu-bar percent is no longer
-    /// trustworthy as a precise number, but the last-known value is still
-    /// directionally useful, so we display it with a `~` prefix.
+    /// Past this point the menu-bar percent is no longer trustworthy as a
+    /// precise number, so we display it with a `~` prefix. We keep showing it
+    /// for as long as its window lasts: usage only moves when Claude is used,
+    /// so the last-known value stays right while this machine is idle. (Usage
+    /// from the web, mobile or another machine is the exception, hence the `~`.)
     private static let staleAfter: TimeInterval = 90
 
-    /// Hard cutoff. Past 15 minutes without a fresh update, even an approximate
-    /// last-known value is misleading enough that we'd rather show nothing.
-    private static let veryStaleAfter: TimeInterval = 900
-
     private var staleTimer: Timer?
-    private var veryStaleTimer: Timer?
     private var clockTickTimer: Timer?
 
     func update(from data: UsageFileData) {
@@ -41,10 +37,13 @@ final class UsageStore: ObservableObject {
         // Prefer the writer's timestamp over our read time. The two are usually
         // close, but if the writer's timestamp is in the future or absurdly
         // stale, fall back to now so the relative-date string stays sane.
-        lastUpdated = Self.sanitizeReset(data.updatedAt) ?? Date()
-        isStale = false
-        isVeryStale = false
-        resetStaleTimers()
+        let updated = Self.sanitizeReset(data.updatedAt) ?? Date()
+        lastUpdated = updated
+        // Age from the writer's timestamp, not from when we read the file, so a
+        // relaunch hours later doesn't present an old number as fresh.
+        let age = Date().timeIntervalSince(updated)
+        isStale = age >= Self.staleAfter
+        resetStaleTimers(staleIn: Self.staleAfter - age)
     }
 
     /// True once the file has been read at least once.
@@ -87,14 +86,13 @@ final class UsageStore: ObservableObject {
         return result.isEmpty ? nil : result
     }
 
-    private func resetStaleTimers() {
+    private func resetStaleTimers(staleIn: TimeInterval) {
         staleTimer?.invalidate()
-        veryStaleTimer?.invalidate()
-        staleTimer = Timer.scheduledTimer(withTimeInterval: Self.staleAfter, repeats: false) { [weak self] _ in
-            Task { @MainActor in self?.isStale = true }
-        }
-        veryStaleTimer = Timer.scheduledTimer(withTimeInterval: Self.veryStaleAfter, repeats: false) { [weak self] _ in
-            Task { @MainActor in self?.isVeryStale = true }
+        staleTimer = nil
+        if staleIn > 0 {
+            staleTimer = Timer.scheduledTimer(withTimeInterval: staleIn, repeats: false) { [weak self] _ in
+                Task { @MainActor in self?.isStale = true }
+            }
         }
         // Start the clock-tick timer once. It runs forever so the countdown
         // keeps refreshing even when no new usage data arrives.
@@ -106,22 +104,48 @@ final class UsageStore: ObservableObject {
     }
 
     /// True when we know the cached 5-hour window has rolled over since our last
-    /// update. Once that happens, the cached percent is definitely meaningless —
-    /// even an "approximate" reading would be wrong.
+    /// update. Nothing has been used in the new window as far as this machine
+    /// knows, so the cached percent no longer applies and we show 0 instead.
     private var fiveHourWindowHasReset: Bool {
         guard let reset = fiveHourResetsAt else { return false }
         return reset < Date()
     }
 
+    private var sevenDayWindowHasReset: Bool {
+        guard let reset = sevenDayResetsAt else { return false }
+        return reset < Date()
+    }
+
+    /// The 5-hour percent to display: the last-known value, or 0 once its
+    /// window has rolled over. Alerts keep using the raw `fiveHourPercent`.
+    var fiveHourDisplayPercent: Double? {
+        guard let pct = fiveHourPercent else { return nil }
+        return fiveHourWindowHasReset ? 0 : pct
+    }
+
+    /// Reset time to display. Nil once it has passed: the next window doesn't
+    /// start until Claude is used again, so there is nothing to count down to.
+    var fiveHourDisplayResetsAt: Date? {
+        fiveHourWindowHasReset ? nil : fiveHourResetsAt
+    }
+
+    var sevenDayDisplayPercent: Double? {
+        guard let pct = sevenDayPercent else { return nil }
+        return sevenDayWindowHasReset ? 0 : pct
+    }
+
+    var sevenDayDisplayResetsAt: Date? {
+        sevenDayWindowHasReset ? nil : sevenDayResetsAt
+    }
+
     /// Compact text for the menu bar label.
     /// - Fresh data: `94%`
-    /// - Stale (90s+) but recent and window still valid: `~94%`
-    /// - Very stale (15min+) or window has rolled over: `—%`
+    /// - Stale (90s+), window still running: `~94%`
+    /// - Stale and the window has rolled over: `~0%`
+    /// - No rate-limit data at all: `—%`
     var menuBarText: String {
-        guard let pct = fiveHourPercent else { return "—%" }
-        if !isStale { return "\(Int(pct))%" }
-        if isVeryStale || fiveHourWindowHasReset { return "—%" }
-        return "~\(Int(pct))%"
+        guard let pct = fiveHourDisplayPercent else { return "—%" }
+        return isStale ? "~\(Int(pct))%" : "\(Int(pct))%"
     }
 
     /// Single-string composition of percent + countdown for the menu bar label.
@@ -145,15 +169,12 @@ final class UsageStore: ObservableObject {
 
     /// Optional countdown to the 5-hour window reset, shown next to the percent
     /// in the menu bar. The reset timestamp is a wall-clock time set when the
-    /// window started, so it stays valid even when usage data is stale —
-    /// EXCEPT once we drop to `—%` (very stale or window already rolled over),
-    /// in which case we suppress this too. Format: `1h 23m`, `23m`, `<1m`.
+    /// window started, so it stays valid even when usage data is stale. Gone
+    /// once the window has rolled over. Format: `1h 23m`, `23m`, `<1m`.
     var menuBarCountdown: String? {
-        guard let reset = fiveHourResetsAt else { return nil }
-        // Don't show a countdown when we're already showing —% — the user is in
-        // "no idea" territory and a precise countdown would feel inconsistent.
+        guard let reset = fiveHourDisplayResetsAt else { return nil }
+        // Don't show a countdown next to —%.
         if fiveHourPercent == nil { return nil }
-        if isStale && (isVeryStale || fiveHourWindowHasReset) { return nil }
 
         let secs = reset.timeIntervalSinceNow
         if secs <= 0 { return nil }
@@ -166,11 +187,10 @@ final class UsageStore: ObservableObject {
     }
 
     /// Color indicator for the current usage level. We keep the meaningful color
-    /// during the tilde-stale tier (the last-known value is still directionally
-    /// right) and drop to gray only when we genuinely have no idea.
+    /// while stale (the last-known value is still directionally right) and drop
+    /// to gray only when we have no rate-limit data at all.
     var usageLevel: UsageLevel {
-        guard let pct = fiveHourPercent else { return .unknown }
-        if isStale && (isVeryStale || fiveHourWindowHasReset) { return .unknown }
+        guard let pct = fiveHourDisplayPercent else { return .unknown }
         if pct >= 85 { return .critical }
         if pct >= 60 { return .warning }
         return .normal

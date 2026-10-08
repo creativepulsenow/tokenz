@@ -22,8 +22,8 @@ struct UsagePopoverView: View {
 
             // Prominent stale banner. We surface this BEFORE the numbers so a
             // user looking at the popover can't miss that the values below are
-            // not current. Tied to the same `isStale` flag that hides the
-            // menu-bar percent.
+            // not current. Tied to the same `isStale` flag that puts the `~`
+            // on the menu-bar percent.
             if store.isStale && store.hasRateLimitData {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -32,7 +32,7 @@ struct UsagePopoverView: View {
                         Text("Data may be out of date")
                             .font(.caption)
                             .fontWeight(.semibold)
-                        Text("Claude Code hasn't reported new usage recently. Numbers below reflect the last assistant response.")
+                        Text("Claude Code hasn't reported new usage recently. Numbers below reflect the last assistant response, and show 0% once a window has reset. Usage from the web, mobile or another machine isn't included.")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -63,15 +63,15 @@ struct UsagePopoverView: View {
                 // 5-hour session
                 UsageRow(
                     label: "Current Session (5hr)",
-                    percent: store.fiveHourPercent,
-                    resetsAt: store.fiveHourResetsAt
+                    percent: store.fiveHourDisplayPercent,
+                    resetsAt: store.fiveHourDisplayResetsAt
                 )
 
                 // 7-day weekly
                 UsageRow(
                     label: "Weekly (7 day)",
-                    percent: store.sevenDayPercent,
-                    resetsAt: store.sevenDayResetsAt
+                    percent: store.sevenDayDisplayPercent,
+                    resetsAt: store.sevenDayDisplayResetsAt
                 )
             }
 

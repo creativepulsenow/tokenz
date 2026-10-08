@@ -30,7 +30,7 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 
 - **Glanceable** — asterisk + percentage in the menu bar, plus a `· 1h 23m` countdown to the next 5-hour reset so you can read both numbers at a glance.
 - **Threshold notifications** — one alert per threshold crossing per window. No storms on first install at 95%.
-- **Honest about uncertainty** — past 90 seconds without a fresh update, the menu bar prefixes the last-known number with a tilde (`~94%`) to signal "approximate." Past 15 minutes, or once the 5-hour window has rolled over, it gives up and shows `—%`. The popover shows a warning banner the whole time.
+- **Honest about uncertainty** — past 90 seconds without a fresh update, the menu bar prefixes the last-known number with a tilde (`~94%`) to signal "approximate." The number stays up for as long as its 5-hour window lasts; once the window rolls over it shows `~0%`. The popover shows a warning banner the whole time.
 - **Launch at Login** — one-click toggle, backed by `SMAppService`.
 - **Tiny** — ~600 lines of Swift, ~120 lines of bash. Zero third-party dependencies.
 - **Private** — everything stays on your machine; the app makes zero network calls. Inputs are sanitized at the boundary so a misbehaving cohabitant can't crash or spoof the UI.
@@ -99,9 +99,9 @@ ClaudeMonitor isn't a poller — it's a passive observer. The cadence comes enti
 
 - **Active session (Claude Code or Cowork actively responding):** updates every assistant turn — typically every 5–30 seconds during back-and-forth, less often during long tool-heavy responses. File-write to UI latency is sub-second.
 - **Local Claude tool open but idle:** no updates.
-- **No local Claude tool running at all:** no updates. After 90 seconds the menu bar swaps to a tilde-prefixed approximation (`~94%`) and the popover banners it. After 15 minutes — or as soon as the 5-hour window rolls over — it switches to `—%` because even an approximation would be wrong by then.
+- **No local Claude tool running at all:** no updates. After 90 seconds the menu bar swaps to a tilde-prefixed approximation (`~94%`) and the popover banners it. It keeps showing that last-known number until the 5-hour window rolls over, then shows `~0%`: usage only moves when you use Claude, so the last reading stays right while you're idle.
 
-Practical effect: the menu bar is always *"current as of your last assistant reply,"* which is what you usually want when you're working. If you've been away and just want to glance at the live number, you'll need to send any message in Claude Code or Cowork to refresh.
+Practical effect: the menu bar is always *"current as of your last assistant reply,"* which is what you usually want when you're working. The one thing a tilde number can miss is usage from claude.ai web, mobile or another machine; send any message in Claude Code or Cowork to pick that up.
 
 #### Why the menu bar can show 1% less than the Anthropic web console
 
@@ -140,7 +140,7 @@ ClaudeMonitor is best-effort. A few caveats before you rely on it:
 - **It's at least one assistant turn behind live account state.** Structural, not a bug — see [Update cadence](#update-cadence).
 - **Notifications can be missed.** Thresholds (70 / 85 / 95%) only fire when the app is running and a status-line update arrives that crosses them. Cross 85% via web chat while ClaudeMonitor is closed and you'll skip that alert — only the next unfired threshold counts.
 - **The 95% alert is late by design.** By the time it fires you're nearly out for the window. If you want earlier warning, watch for the 70% one.
-- **The percentage gets fuzzier as it ages.** Past 90 seconds without fresh data, the menu bar adds a tilde — `~94%` instead of `94%` — to flag that the number is approximate. Past 15 minutes, or after the 5-hour window has rolled over, it falls back to `—%`. Run any prompt in Claude Code to bring it back.
+- **The percentage gets fuzzier as it ages.** Past 90 seconds without fresh data, the menu bar adds a tilde — `~94%` instead of `94%` — to flag that the number is approximate. It stays on screen until the 5-hour window rolls over, then reads `~0%`. A tilde number doesn't include anything you used on claude.ai web, mobile or another machine since the last update. Run any prompt in Claude Code to get an exact reading.
 
 Use it as background information. If hitting a window mid-task would cost you real money or break a deadline, you'll want your own habit running too.
 
