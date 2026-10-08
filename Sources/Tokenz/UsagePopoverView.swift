@@ -21,29 +21,10 @@ struct UsagePopoverView: View {
                 }
             }
 
-            // Prominent stale banner. We surface this BEFORE the numbers so a
-            // user looking at the popover can't miss that the values below are
-            // not current. Tied to the same `isStale` flag that puts the `~`
-            // on the menu-bar percent.
-            if store.isStale && store.hasRateLimitData {
-                HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Data may be out of date")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                        Text("Claude Code hasn't reported new usage recently. Numbers below reflect the last assistant response, and show 0% once a window has reset. Usage from the web, mobile or another machine isn't included.")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-                .padding(8)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.orange.opacity(0.12))
-                .cornerRadius(6)
-            }
+            // No warning when the numbers are a few minutes old: usage only
+            // moves when Claude is used, so a last-known value is almost
+            // always still right. Its age is on the "Updated ... ago" line
+            // below, and the menu bar marks it with a `~`.
 
             if connection.state != .connected || connection.message != nil {
                 ConnectionPanel(connection: connection)

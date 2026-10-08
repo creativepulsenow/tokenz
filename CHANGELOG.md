@@ -2,6 +2,10 @@
 
 Each release's section below is also its release notes.
 
+## 1.5.3
+
+- **No more "Data may be out of date" warning.** It appeared 90 seconds after the last Claude Code reply, which is most of the time you glance at the app, for a number that is almost always still right. The menu bar still marks an older number with a tilde, and the popover still says when it was last updated.
+
 ## 1.5.2
 
 - **Removed the per-model section and the Fable note.** A split of usage by model is not the same as a model's own limit, and showing one invited that confusion. Tokenz shows limits only.

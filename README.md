@@ -117,7 +117,7 @@ Claude Code ──(stdin JSON)──▶ Tokenz --statusline ──▶ ~/Library/
 Tokenz is a passive observer. The cadence comes entirely from Claude Code running the status line:
 
 - **Active session:** updates every assistant turn, typically every 5–30 seconds during back-and-forth, less often during long tool-heavy responses. File-write to menu bar latency is sub-second.
-- **Claude Code open but idle, or not running:** no updates. After 90 seconds the menu bar adds a tilde (`~51%`) and the popover shows a banner. The last-known number stays until the 5-hour window rolls over, then reads `~0%`: usage only moves when you use Claude, so the last reading stays right while you're idle.
+- **Claude Code open but idle, or not running:** no updates. After 90 seconds the menu bar adds a tilde (`~51%`); the popover's "Updated ... ago" line says how old the number is. The last-known number stays until the 5-hour window rolls over, then reads `~0%`: usage only moves when you use Claude, so the last reading stays right while you're idle.
 
 The one thing a tilde number can miss is usage from claude.ai web, mobile or another machine; send any message in Claude Code to pick that up.
 
