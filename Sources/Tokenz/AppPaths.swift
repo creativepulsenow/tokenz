@@ -30,6 +30,11 @@ enum AppPaths {
         ensureDirectory((dataDirectory() as NSString).appendingPathComponent("settings-backups"))
     }
 
+    /// This week's usage per model, as estimated by `--statusline`.
+    static func modelUsageFile() -> String {
+        (dataDirectory() as NSString).appendingPathComponent("models.json")
+    }
+
     /// The status line command the user had before connecting, if any.
     static func chainedCommandFile() -> String {
         (dataDirectory() as NSString).appendingPathComponent("chained-statusline-command")

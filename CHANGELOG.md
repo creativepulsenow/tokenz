@@ -2,6 +2,12 @@
 
 Each release's section below is also its release notes.
 
+## 1.5.0
+
+- **This week by model.** The popover shows how your Claude Code usage on this Mac splits across models, for example Fable 62%, Opus 30%. It is an estimate from each session's own cost figures, and it starts counting from this version on.
+- **Ready for per-model limits.** If Claude Code starts passing more limits to the status line (a separate Fable or Opus weekly limit, say), they appear as extra rows without an update.
+- **A pointer for Fable.** While you are on Fable, the popover notes that Fable has its own weekly limit and where to find it (`/usage` in Claude Code), because Claude Code doesn't report that number to the status line today.
+
 ## 1.4.4
 
 - **Built in the open.** This is the first release built by GitHub Actions from the tagged commit, with a signed provenance record you can check.

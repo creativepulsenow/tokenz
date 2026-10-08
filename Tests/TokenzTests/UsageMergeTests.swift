@@ -98,6 +98,42 @@ final class UsageMergeTests: XCTestCase {
         XCTAssertNil(merge(nil, junk, .fresh).current.fiveHour)
     }
 
+    func testExtraLimitsAreStoredAndReplacedByName() {
+        var first = reading(40)
+        first.extra = [.init(name: "Fable (weekly)", window: Window(percent: 8, resetsAt: week)),
+                       .init(name: "Opus (weekly)", window: Window(percent: 30, resetsAt: week))]
+        let stored = merge(nil, first, .unknown).current
+        XCTAssertEqual(stored.extra.map(\.name), ["Fable (weekly)", "Opus (weekly)"])
+
+        // A later run that only mentions one keeps the other.
+        var second = reading(41)
+        second.extra = [.init(name: "Fable (weekly)", window: Window(percent: 9, resetsAt: week))]
+        let merged = merge(stored, second, .fresh).current
+        XCTAssertEqual(merged.extra.first { $0.name == "Fable (weekly)" }?.window.percent, 9)
+        XCTAssertEqual(merged.extra.first { $0.name == "Opus (weekly)" }?.window.percent, 30)
+    }
+
+    func testExpiredExtraLimitsAreDropped() {
+        var incoming = reading(40)
+        incoming.extra = [.init(name: "Old", window: Window(percent: 50, resetsAt: now - 60)),
+                          .init(name: "Junk", window: Window(percent: 50, resetsAt: now + 400 * 86_400))]
+        XCTAssertTrue(merge(nil, incoming, .fresh).current.extra.isEmpty)
+
+        var stored = reading(40)
+        stored.extra = [.init(name: "Old", window: Window(percent: 50, resetsAt: now - 60))]
+        XCTAssertTrue(merge(stored, reading(41), .fresh).current.extra.isEmpty)
+    }
+
+    func testStaleRunCannotChangeExtraLimits() {
+        var stored = reading(40)
+        stored.extra = [.init(name: "Fable (weekly)", window: Window(percent: 9, resetsAt: week))]
+        var incoming = reading(40)
+        incoming.extra = [.init(name: "Fable (weekly)", window: Window(percent: 2, resetsAt: week))]
+        let outcome = merge(stored, incoming, .stale)
+        XCTAssertFalse(outcome.shouldWrite)
+        XCTAssertEqual(outcome.current.extra.first?.window.percent, 9)
+    }
+
     func testModelFallsBackToStored() {
         var incoming = reading(60)
         incoming.model = nil

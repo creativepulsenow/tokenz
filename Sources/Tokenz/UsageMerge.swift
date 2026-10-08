@@ -9,10 +9,19 @@ enum UsageMerge {
         var resetsAt: Double?
     }
 
+    /// A limit beyond the two every plan has, such as a per-model weekly
+    /// limit, under the name Claude Code gives it.
+    struct NamedWindow: Equatable {
+        var name: String
+        var window: Window
+    }
+
     struct Reading: Equatable {
         var fiveHour: Window?
         var sevenDay: Window?
         var model: String?
+        /// Whatever other limits Claude Code reported.
+        var extra: [NamedWindow] = []
     }
 
     /// Whether a run carries usage numbers newer than its session's last run.
@@ -58,8 +67,14 @@ enum UsageMerge {
         let storedSeven = live(stored?.sevenDay, horizon: sevenDayHorizon, requireReset: true)
         let newFive = live(incoming.fiveHour, horizon: fiveHourHorizon, requireReset: false)
         let newSeven = live(incoming.sevenDay, horizon: sevenDayHorizon, requireReset: false)
+        let storedExtra = (stored?.extra ?? []).filter {
+            live($0.window, horizon: sevenDayHorizon, requireReset: true) != nil
+        }
+        let newExtra = incoming.extra.filter {
+            live($0.window, horizon: sevenDayHorizon, requireReset: false) != nil
+        }
         let kept = Outcome(
-            current: Reading(fiveHour: storedFive, sevenDay: storedSeven, model: stored?.model),
+            current: Reading(fiveHour: storedFive, sevenDay: storedSeven, model: stored?.model, extra: storedExtra),
             shouldWrite: false)
 
         if stored != nil {
@@ -75,15 +90,21 @@ enum UsageMerge {
             }
             // A run without limits (a session on an API key, or one that
             // hasn't had its first reply) is no reason to rewrite the file.
-            if newFive == nil, newSeven == nil { return kept }
+            if newFive == nil, newSeven == nil, newExtra.isEmpty { return kept }
         }
+
+        // This run's extra limits replace stored ones of the same name;
+        // stored ones it doesn't mention stay until they reset.
+        let mentioned = Set(newExtra.map { $0.name })
+        let extra = newExtra + storedExtra.filter { !mentioned.contains($0.name) }
 
         // With nothing stored yet we write even without limits, so the app can
         // tell "no data yet" from "connected, but no limits reported".
         return Outcome(
             current: Reading(fiveHour: newFive ?? storedFive,
                              sevenDay: newSeven ?? storedSeven,
-                             model: incoming.model ?? stored?.model),
+                             model: incoming.model ?? stored?.model,
+                             extra: extra),
             shouldWrite: true)
     }
 

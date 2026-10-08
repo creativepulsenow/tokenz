@@ -38,7 +38,8 @@ enum StatusLineCommand {
             let incoming = UsageMerge.Reading(
                 fiveHour: window(limits?["five_hour"]),
                 sevenDay: window(limits?["seven_day"]),
-                model: model)
+                model: model,
+                extra: extraWindows(limits))
 
             let record = SessionRecord(session: session)
             let now = Date().timeIntervalSince1970
@@ -49,6 +50,12 @@ enum StatusLineCommand {
             // dropped) do we note that we've seen it. If Claude Code cancels
             // this run earlier, the re-run must still count as news.
             record.save()
+            // After the record, so a canceled run can lose an increase but
+            // never count one twice.
+            if let model = model, let increase = record.increase,
+               let week = outcome.current.sevenDay?.resetsAt {
+                addModelUsage(model: model, cost: increase.cost, time: increase.time, weekResetsAt: week)
+            }
 
             // Print what the menu bar shows, not this session's own (possibly
             // older) numbers.
@@ -94,23 +101,73 @@ enum StatusLineCommand {
         return d.isFinite ? d : nil
     }
 
+    /// The limits Claude Code never passes to every plan, and so has no fixed
+    /// row in the app: handled by `extraWindows`.
+    private static let fixedLimitKeys: Set<String> = ["five_hour", "seven_day", "spend_limit", "model_scoped"]
+    private static let maxExtraWindows = 8
+    private static let maxLimitNameScalars = 40
+
+    /// Any other limit in `rate_limits` that looks like a window. Today
+    /// Claude Code sends none; if it starts to (per-model weekly limits, for
+    /// instance), they show up in the app without a new release.
+    private static func extraWindows(_ limits: [String: Any]?) -> [UsageMerge.NamedWindow] {
+        guard let limits = limits else { return [] }
+        var found: [UsageMerge.NamedWindow] = []
+        for key in limits.keys.sorted() where !fixedLimitKeys.contains(key) {
+            if let w = window(limits[key]), let name = limitName(forKey: key) {
+                found.append(UsageMerge.NamedWindow(name: name, window: w))
+            }
+        }
+        // Limits scoped to a model arrive as a list with their own labels.
+        for entry in (limits["model_scoped"] as? [Any]) ?? [] {
+            if let entry = entry as? [String: Any], let w = window(entry),
+               let name = cleanLimitName(entry["display_name"] as? String) {
+                found.append(UsageMerge.NamedWindow(name: name, window: w))
+            }
+        }
+        return Array(found.prefix(maxExtraWindows))
+    }
+
+    /// `seven_day_opus` becomes "Opus (weekly)", `five_hour_x` "X (5hr)".
+    private static func limitName(forKey key: String) -> String? {
+        for (prefix, suffix) in [("seven_day_", " (weekly)"), ("five_hour_", " (5hr)")] where key.hasPrefix(prefix) {
+            return cleanLimitName(key.dropFirst(prefix.count).replacingOccurrences(of: "_", with: " ").capitalized)
+                .map { $0 + suffix }
+        }
+        return cleanLimitName(key.replacingOccurrences(of: "_", with: " ").capitalized)
+    }
+
+    private static func cleanLimitName(_ name: String?) -> String? {
+        guard let name = name else { return nil }
+        let scalars = name.unicodeScalars.prefix(maxLimitNameScalars)
+            .filter { !CharacterSet.controlCharacters.contains($0) }
+        let cleaned = String(String.UnicodeScalarView(scalars)).trimmingCharacters(in: .whitespaces)
+        return cleaned.isEmpty ? nil : cleaned
+    }
+
     private static func storedReading() -> UsageMerge.Reading? {
         guard let data = AppPaths.readSmallFile(AppPaths.usageFile()),
               let stored = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return nil }
+        let extra = ((stored["extra"] as? [Any]) ?? []).compactMap { entry -> UsageMerge.NamedWindow? in
+            guard let entry = entry as? [String: Any], let w = window(entry),
+                  let name = cleanLimitName(entry["name"] as? String) else { return nil }
+            return UsageMerge.NamedWindow(name: name, window: w)
+        }
         return UsageMerge.Reading(
             fiveHour: window(stored["five_hour"]),
             sevenDay: window(stored["seven_day"]),
-            model: stored["model"] as? String)
+            model: stored["model"] as? String,
+            extra: Array(extra.prefix(maxExtraWindows)))
     }
 
     private static func write(_ reading: UsageMerge.Reading, updatedAt: Double) {
-        func json(_ w: UsageMerge.Window?) -> Any {
-            guard let w = w else { return NSNull() }
-            return ["used_percentage": w.percent, "resets_at": w.resetsAt ?? NSNull()] as [String: Any]
+        func json(_ w: UsageMerge.Window) -> [String: Any] {
+            ["used_percentage": w.percent, "resets_at": w.resetsAt ?? NSNull()]
         }
         let object: [String: Any] = [
-            "five_hour": json(reading.fiveHour),
-            "seven_day": json(reading.sevenDay),
+            "five_hour": reading.fiveHour.map(json) ?? NSNull(),
+            "seven_day": reading.sevenDay.map(json) ?? NSNull(),
+            "extra": reading.extra.map { json($0.window).merging(["name": $0.name]) { a, _ in a } },
             "model": reading.model ?? NSNull(),
             "updated_at": updatedAt,
         ]
@@ -118,15 +175,46 @@ enum StatusLineCommand {
         AppPaths.writeAtomically(data, to: AppPaths.usageFile())
     }
 
+    // MARK: - This week by model
+
+    /// Adds one session's increase to this week's per-model totals. Sessions
+    /// run concurrently, so the read-change-write happens under a file lock;
+    /// if the lock can't be had quickly, the increase is dropped rather than
+    /// holding up Claude Code's status line.
+    private static func addModelUsage(model: String, cost: Double, time: Double, weekResetsAt: Double) {
+        let path = AppPaths.modelUsageFile()
+        let lock = open(path + ".lock", O_CREAT | O_RDWR | O_NOFOLLOW, 0o600)
+        guard lock >= 0 else { return }
+        defer { close(lock) }   // also releases the lock
+        var attempts = 0
+        while flock(lock, LOCK_EX | LOCK_NB) != 0 {
+            attempts += 1
+            if attempts > 20 { return }
+            usleep(5_000)
+        }
+        var usage = AppPaths.readSmallFile(path)
+            .flatMap { try? JSONDecoder().decode(ModelUsage.self, from: $0) }
+            ?? ModelUsage(weekResetsAt: weekResetsAt)
+        usage.add(model: model, cost: cost, time: time, weekResetsAt: weekResetsAt)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        if let data = try? encoder.encode(usage) { AppPaths.writeAtomically(data, to: path) }
+    }
+
     // MARK: - Per-session freshness
 
     /// What we remember about one Claude Code session between runs: its
-    /// accumulated API time. That only grows when the session gets an API
-    /// reply, which is also the only time its usage numbers are refreshed.
+    /// accumulated API time and cost. API time only grows when the session
+    /// gets an API reply, which is also the only time its usage numbers are
+    /// refreshed.
     private struct SessionRecord {
         private let file: String?
         private let apiTime: Double?
+        private let cost: Double?
         let freshness: UsageMerge.Freshness
+        /// How much the session's cost and API time grew since its last run.
+        /// Nil on first sighting, when there is nothing to compare against.
+        let increase: (cost: Double, time: Double)?
 
         private static let idCharacters = CharacterSet(charactersIn:
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_")
@@ -139,27 +227,44 @@ enum StatusLineCommand {
                   let apiTime = number((session["cost"] as? [String: Any])?["total_api_duration_ms"]) else {
                 file = nil
                 apiTime = nil
+                cost = nil
                 freshness = .unknown
+                increase = nil
                 return
             }
+            let cost = number((session["cost"] as? [String: Any])?["total_cost_usd"])
             // One small file per session: sessions run concurrently, and a
-            // shared file would lose updates.
+            // shared file would lose updates. It holds the API time, then the
+            // cost if Claude Code reported one.
             let file = (AppPaths.sessionsDirectory() as NSString).appendingPathComponent(id)
-            let recorded = AppPaths.readSmallFile(file, maxBytes: 64)
-                .flatMap { Double(String(decoding: $0, as: UTF8.self)) }
+            let recorded = (AppPaths.readSmallFile(file, maxBytes: 64).map { String(decoding: $0, as: UTF8.self) } ?? "")
+                .split(separator: " ").map { Double($0) }
+            let recordedTime = recorded.first ?? nil
+            let recordedCost = recorded.count > 1 ? recorded[1] : nil
             self.file = file
             self.apiTime = apiTime
-            if let recorded = recorded {
-                freshness = recorded == apiTime ? .stale : .fresh
+            self.cost = cost
+            if let recordedTime = recordedTime {
+                freshness = recordedTime == apiTime ? .stale : .fresh
+                // A counter that went backward means the session restarted;
+                // there is no telling how much of the new total is new.
+                if apiTime > recordedTime {
+                    let costIncrease = cost.flatMap { now in recordedCost.map { max(0, now - $0) } } ?? 0
+                    increase = (cost: costIncrease, time: apiTime - recordedTime)
+                } else {
+                    increase = nil
+                }
             } else {
                 // First sighting: the reading could be seconds or hours old.
                 freshness = .unknown
+                increase = nil
             }
         }
 
         func save() {
             guard let file = file, let apiTime = apiTime, freshness != .stale else { return }
-            AppPaths.writeAtomically(Data(String(apiTime).utf8), to: file)
+            let text = cost.map { "\(apiTime) \($0)" } ?? "\(apiTime)"
+            AppPaths.writeAtomically(Data(text.utf8), to: file)
         }
     }
 

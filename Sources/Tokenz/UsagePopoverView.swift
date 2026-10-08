@@ -95,6 +95,22 @@ struct UsagePopoverView: View {
                     percent: store.sevenDayDisplayPercent,
                     resetsAt: store.sevenDayDisplayResetsAt
                 )
+
+                // Any other limits Claude Code reports (per-model, for instance).
+                ForEach(store.visibleExtraLimits) { limit in
+                    UsageRow(label: limit.name, percent: limit.percent, resetsAt: limit.resetsAt)
+                }
+
+                if store.showsFableHint {
+                    Text("Fable has its own weekly limit, which Claude Code doesn't report here. See /usage in Claude Code.")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                if !store.modelShares.isEmpty {
+                    ModelBreakdown(shares: store.modelShares)
+                }
             }
 
             Divider()
@@ -148,6 +164,7 @@ struct UsagePopoverView: View {
         .onAppear {
             loginItem.refresh()
             connection.refresh(clearingMessage: true)
+            store.reloadModelShares()
             if !hasRequestedPermission {
                 hasRequestedPermission = true
                 onRequestNotificationPermission?()
@@ -224,6 +241,47 @@ struct ConnectionPanel: View {
         case .notConnected, .otherStatusLine: return "Connect to Claude Code"
         case .needsUpdate: return "Update Connection"
         case .connected, .settingsUnreadable, .appNotInstalled: return nil
+        }
+    }
+}
+
+// MARK: - Model Breakdown
+
+/// Where this week's usage went, by model. An estimate from Claude Code
+/// sessions on this Mac, and labeled as one.
+struct ModelBreakdown: View {
+    let shares: [UsageStore.ModelShare]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("This week by model")
+                .font(.subheadline)
+            ForEach(shares) { share in
+                HStack(spacing: 8) {
+                    Text(share.name)
+                        .font(.caption)
+                        .lineLimit(1)
+                        .frame(width: 96, alignment: .leading)
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.gray.opacity(0.2))
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.accentColor.opacity(0.7))
+                                .frame(width: max(0, geo.size.width * CGFloat(share.share)))
+                        }
+                    }
+                    .frame(height: 4)
+                    Text(UsageFormat.percent(share.share * 100))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(width: 34, alignment: .trailing)
+                }
+            }
+            Text("Estimated share of your Claude Code usage on this Mac. Not the same as a model's own limit.")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
