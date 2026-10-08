@@ -39,13 +39,14 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 
 ## Requirements
 
+- A Mac with Apple Silicon (M1 or later)
 - macOS 14.0 (Sonoma) or later
 - [Claude Code](https://claude.com/claude-code) installed
 - Claude.ai Pro or Max subscription (rate limit data only appears on these tiers)
 
 ## Install (prebuilt)
 
-1. Download **`Tokenz-1.4.1.dmg`** from the [latest release](https://github.com/creativepulsenow/tokenz/releases/latest).
+1. Download **`Tokenz-1.4.2.dmg`** from the [latest release](https://github.com/creativepulsenow/tokenz/releases/latest).
 2. Open the DMG and drag `Tokenz.app` onto the Applications shortcut.
    *(Connecting to Claude Code, "Launch at Login" and notifications all need the app to live in `/Applications`.)*
 3. Launch `Tokenz.app` from `/Applications`. **First time only:** macOS will refuse to open it because the app is ad-hoc signed and not yet notarized. Open **System Settings → Privacy & Security**, scroll down to the message about Tokenz, and click **Open Anyway**. (On macOS 14 you can instead right-click the app → **Open**.) Every later launch is normal.
@@ -55,7 +56,7 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 
 You should see an asterisk and a percentage in your menu bar.
 
-The bundled `.app` is a universal binary (Apple Silicon + Intel).
+The app is built for Apple Silicon (M1 or later). Intel Macs are not supported.
 
 **Already have a status line?** Connect keeps it. Tokenz runs first, then hands the same input to your command and shows its output, so your status line looks the same as before.
 

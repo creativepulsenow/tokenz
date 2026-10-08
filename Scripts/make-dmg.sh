@@ -28,14 +28,14 @@ fi
 # Build if needed. Always from scratch, so nothing stale from an earlier
 # build can end up in the bundle.
 if [ ! -d "$APP_PATH" ] || [ -z "${1:-}" ]; then
-  echo "==> Building Release configuration (universal: arm64 + x86_64)"
+  echo "==> Building Release configuration (Apple Silicon)"
   rm -rf "${DERIVED}/Build"
   xcodebuild \
     -project "${APP_NAME}.xcodeproj" \
     -scheme "${APP_NAME}" \
     -configuration Release \
     -derivedDataPath "${DERIVED}" \
-    ARCHS="arm64 x86_64" \
+    ARCHS="arm64" \
     ONLY_ACTIVE_ARCH=NO \
     build > /dev/null
   APP_PATH="${APP_DEFAULT}"
@@ -48,6 +48,9 @@ fi
 
 # Checks every shipped build must pass.
 BINARY="${APP_PATH}/Contents/MacOS/${APP_NAME}"
+if [ "$(lipo -archs "$BINARY")" != "arm64" ]; then
+  echo "ERROR: expected an Apple Silicon only binary, got: $(lipo -archs "$BINARY")"; exit 1
+fi
 echo "==> Verifying the build"
 codesign --verify --deep --strict "$APP_PATH"
 # Capture first: with pipefail, `grep -q` closing the pipe early can make the
@@ -120,6 +123,7 @@ After that, Tokenz launches normally.
 
 REQUIREMENTS
 ------------
+  - A Mac with Apple Silicon (M1 or later)
   - macOS 14.0 (Sonoma) or later
   - Claude Code installed
   - Claude.ai Pro or Max plan (rate-limit data only appears on these tiers)
