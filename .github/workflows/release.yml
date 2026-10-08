@@ -1,0 +1,112 @@
+name: Release
+
+# Pushing a version tag builds the DMG here, from the tagged commit, and
+# publishes it with a signed provenance record. Running the workflow by hand
+# does a dry run: it builds and checks the DMG and keeps it as a workflow
+# artifact, without publishing anything.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 30
+    permissions:
+      contents: write       # create the release
+      id-token: write       # sign the provenance record
+      attestations: write   # store it
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run unit tests
+        run: xcodebuild -project Tokenz.xcodeproj -scheme Tokenz -derivedDataPath build/test-derived test
+
+      - name: Build and check the DMG
+        id: dmg
+        run: |
+          ./Scripts/make-dmg.sh
+          version=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Resources/Info.plist)
+          file="build/Tokenz-${version}.dmg"
+          test -f "$file"
+          {
+            echo "version=${version}"
+            echo "file=${file}"
+            echo "sha256=$(shasum -a 256 "$file" | cut -d' ' -f1)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check the tag matches the app version
+        if: github.event_name == 'push'
+        env:
+          VERSION: ${{ steps.dmg.outputs.version }}
+        run: |
+          if [ "$GITHUB_REF_NAME" != "v${VERSION}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match app version ${VERSION}"
+            exit 1
+          fi
+
+      - name: Write the release notes
+        env:
+          VERSION: ${{ steps.dmg.outputs.version }}
+          SHA256: ${{ steps.dmg.outputs.sha256 }}
+        run: |
+          # The section of CHANGELOG.md for this version.
+          awk -v v="## ${VERSION}" '$0 == v {found=1; next} /^## / {found=0} found' CHANGELOG.md > notes-body.md
+          if ! grep -q '[^[:space:]]' notes-body.md; then
+            echo "CHANGELOG.md has no section for ${VERSION}"
+            exit 1
+          fi
+          {
+            echo "Usage limits for Claude Code in your menu bar."
+            echo
+            echo "## New in ${VERSION}"
+            cat notes-body.md
+            echo
+            echo "## Install"
+            echo
+            echo "1. Download \`Tokenz-${VERSION}.dmg\` and drag the app to Applications."
+            echo "2. Open it. The app is ad-hoc signed and not notarized yet, so the first time go to **System Settings → Privacy & Security** and click **Open Anyway**."
+            echo "3. Click the menu bar item, then **Connect to Claude Code**."
+            echo "4. Send a message in Claude Code."
+            echo
+            echo "Requires a Mac with Apple Silicon, macOS 14 or later, Claude Code, and a Claude Pro or Max plan."
+            echo
+            echo "## Verify the download"
+            echo
+            echo "This DMG was built by GitHub Actions from the tagged commit. To check that:"
+            echo
+            echo '```'
+            echo "gh attestation verify Tokenz-${VERSION}.dmg -R ${GITHUB_REPOSITORY}"
+            echo '```'
+            echo
+            echo "SHA-256: \`${SHA256}\`"
+          } > notes.md
+          cat notes.md
+
+      - name: Attest build provenance
+        if: github.event_name == 'push'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ steps.dmg.outputs.file }}
+
+      - name: Publish the release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.dmg.outputs.version }}
+          FILE: ${{ steps.dmg.outputs.file }}
+        run: gh release create "$GITHUB_REF_NAME" "$FILE" --title "Tokenz ${VERSION}" --notes-file notes.md --verify-tag
+
+      - name: Keep the DMG from a dry run
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Tokenz-${{ steps.dmg.outputs.version }}-dry-run
+          path: ${{ steps.dmg.outputs.file }}
+          retention-days: 7

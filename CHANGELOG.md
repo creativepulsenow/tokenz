@@ -1,0 +1,45 @@
+# Changelog
+
+Each release's section below is also its release notes.
+
+## 1.4.3
+
+- **The menu bar icon is now color-coded:** green under 60%, orange from 60%, red from 85%.
+- **Alerts are more trustworthy:** no alert for a window that has already ended, and each threshold fires once per window.
+- **Readings can't get lost or go stale:** fixes for canceled status line runs, expired windows, and sessions that haven't had their first reply yet.
+- **Your own status line is visible:** if Tokenz runs one for you, the popover shows the command and lets you stop it.
+- **Settings backups are private:** they now live in the app's own folder, owner-only, newest five kept.
+- **Unit tests** cover the code that edits your settings and decides which reading to trust.
+
+## 1.4.2
+
+- **Apple Silicon only.** The Intel half of the app is gone. Intel Macs are not supported.
+
+## 1.4.1
+
+- **Accurate with several sessions open.** An idle Claude Code session can no longer overwrite the current number with an old one.
+- **Fixes from a security review** of setup, the status line and file handling.
+- **Cleaner build:** the app is stripped and no longer contains build-machine paths.
+
+## 1.4.0
+
+- **Renamed to Tokenz.** Earlier versions shipped as ClaudeMonitor.
+
+## 1.3.0
+
+- **One-click setup:** a Connect to Claude Code button replaces the install script. No Terminal, no Homebrew, no `jq`.
+- **The app is its own status line command,** and an existing status line of your own keeps showing.
+- **Hardened build:** hardened runtime on, debug entitlement removed.
+
+## 1.2.0
+
+- **The percentage stays visible while idle,** marked with a tilde, until the window resets.
+- **Reset countdown** in the menu bar.
+
+## 1.1.0
+
+- First build packaged as a DMG.
+
+## 1.0.0
+
+- First working version.
