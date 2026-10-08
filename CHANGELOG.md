@@ -2,6 +2,10 @@
 
 Each release's section below is also its release notes.
 
+## 1.5.1
+
+- **The per-model section no longer looks like a limit.** It is now one bar split between the models, titled "Where your usage went", and it says since when it has been counting. In 1.5.0 it was a row of bars with percentages right under the real limits, which read as more limits.
+
 ## 1.5.0
 
 - **This week by model.** The popover shows how your Claude Code usage on this Mac splits across models, for example Fable 62%, Opus 30%. It is an estimate from each session's own cost figures, and it starts counting from this version on.

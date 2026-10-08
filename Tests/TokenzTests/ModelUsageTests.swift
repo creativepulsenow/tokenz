@@ -41,6 +41,26 @@ final class ModelUsageTests: XCTestCase {
         XCTAssertEqual(usage.models["Fable 5.1"]?.cost, 10)
     }
 
+    func testRemembersWhenCountingBegan() {
+        var usage = ModelUsage(weekResetsAt: week)
+        XCTAssertNil(usage.countingSince)
+        usage.add(model: "A", cost: 0, time: 0, weekResetsAt: week, now: 100)   // nothing to count
+        XCTAssertNil(usage.countingSince)
+        usage.add(model: "A", cost: 1, time: 1, weekResetsAt: week, now: 200)
+        usage.add(model: "A", cost: 1, time: 1, weekResetsAt: week, now: 300)
+        XCTAssertEqual(usage.countingSince, 200)
+        // A new week starts counting afresh.
+        usage.add(model: "A", cost: 1, time: 1, weekResetsAt: week + 7 * 86_400, now: 900)
+        XCTAssertEqual(usage.countingSince, 900)
+    }
+
+    func testReadsFilesWrittenBeforeCountingSinceExisted() throws {
+        let old = Data(#"{"models":{"Opus 5.5":{"cost":1,"time":2}},"weekResetsAt":2000000}"#.utf8)
+        let usage = try JSONDecoder().decode(ModelUsage.self, from: old)
+        XCTAssertNil(usage.countingSince)
+        XCTAssertEqual(usage.models["Opus 5.5"]?.cost, 1)
+    }
+
     func testJunkIsIgnored() {
         var usage = ModelUsage(weekResetsAt: week)
         usage.add(model: "A", cost: -1, time: 5, weekResetsAt: week)

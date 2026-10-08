@@ -109,7 +109,7 @@ struct UsagePopoverView: View {
                 }
 
                 if !store.modelShares.isEmpty {
-                    ModelBreakdown(shares: store.modelShares)
+                    ModelBreakdown(shares: store.modelShares, since: store.modelSharesSince)
                 }
             }
 
@@ -247,42 +247,83 @@ struct ConnectionPanel: View {
 
 // MARK: - Model Breakdown
 
-/// Where this week's usage went, by model. An estimate from Claude Code
-/// sessions on this Mac, and labeled as one.
+/// Where the counted usage went, by model. Drawn as one bar split between
+/// the models, not as a bar per model: a row of bars with percentages right
+/// under the limit rows reads as more limits, and these are shares of usage.
 struct ModelBreakdown: View {
     let shares: [UsageStore.ModelShare]
+    /// When counting began, if known.
+    let since: Date?
+
+    /// One color per segment, in order. Deliberately not the green / orange /
+    /// red the limit rows use.
+    private static let palette: [Color] = [.blue, .purple, .teal, .indigo, .gray]
+
+    private func color(_ index: Int) -> Color {
+        Self.palette[min(index, Self.palette.count - 1)]
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("This week by model")
+        VStack(alignment: .leading, spacing: 5) {
+            Text("Where your usage went")
                 .font(.subheadline)
-            ForEach(shares) { share in
-                HStack(spacing: 8) {
-                    Text(share.name)
-                        .font(.caption)
-                        .lineLimit(1)
-                        .frame(width: 96, alignment: .leading)
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(Color.gray.opacity(0.2))
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(Color.accentColor.opacity(0.7))
-                                .frame(width: max(0, geo.size.width * CGFloat(share.share)))
-                        }
+
+            GeometryReader { geo in
+                HStack(spacing: 1) {
+                    ForEach(Array(shares.enumerated()), id: \.element.id) { index, share in
+                        Rectangle()
+                            .fill(color(index))
+                            .frame(width: segmentWidth(share.share, in: geo.size.width))
                     }
-                    .frame(height: 4)
-                    Text(UsageFormat.percent(share.share * 100))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .frame(width: 34, alignment: .trailing)
+                }
+                .frame(width: geo.size.width, alignment: .leading)
+                .clipShape(RoundedRectangle(cornerRadius: 3))
+            }
+            .frame(height: 6)
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), alignment: .leading)], alignment: .leading, spacing: 2) {
+                ForEach(Array(shares.enumerated()), id: \.element.id) { index, share in
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(color(index))
+                            .frame(width: 6, height: 6)
+                        Text("\(share.name) \(Self.percent(share.share))")
+                            .font(.caption)
+                            .lineLimit(1)
+                    }
                 }
             }
-            Text("Estimated share of your Claude Code usage on this Mac. Not the same as a model's own limit.")
+
+            Text(caption)
                 .font(.caption2)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    /// Width of one segment of the split bar, leaving room for the 1-point
+    /// gaps and keeping a sliver visible for a model with a tiny share.
+    private func segmentWidth(_ share: Double, in total: CGFloat) -> CGFloat {
+        let gaps = CGFloat(max(0, shares.count - 1))
+        return max(2, (total - gaps) * CGFloat(share))
+    }
+
+    /// Shares are rounded to the nearest percent (unlike limits, which round
+    /// down), with a floor so a real but tiny share doesn't read as 0%.
+    private static func percent(_ share: Double) -> String {
+        let value = Int((share * 100).rounded())
+        return value == 0 && share > 0 ? "<1%" : "\(value)%"
+    }
+
+    private var caption: String {
+        var text = "Estimated split of your Claude Code usage on this Mac"
+        if let since = since {
+            let time = since.formatted(date: .omitted, time: .shortened)
+            text += Calendar.current.isDateInToday(since)
+                ? ", since today \(time)"
+                : ", since \(since.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())) \(time)"
+        }
+        return text + ". These are shares, not limits."
     }
 }
 

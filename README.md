@@ -32,7 +32,7 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 - **Always visible** — when Claude Code goes quiet, the last-known number stays up with a tilde (`~51%`) until the window resets, then reads `~0%`.
 - **Threshold notifications** — one alert per threshold per window. A first launch at 95% gets one notification, not three.
 - **One-click setup** — a **Connect to Claude Code** button does the wiring. No Terminal, no Homebrew. If you already have a custom status line, it keeps showing.
-- **This week by model** — the popover estimates how your Claude Code usage on this Mac splits across models (Fable, Opus, Sonnet).
+- **Where your usage went** — the popover estimates how your Claude Code usage on this Mac splits across models (Fable, Opus, Sonnet).
 - **Right with many sessions open** — an idle Claude Code session can't overwrite the current number with an old one.
 - **Launch at Login** — one-click toggle, backed by `SMAppService`.
 - **Small** — about 1,700 lines of Swift, unit tests for the logic that edits your settings, zero third-party dependencies.
@@ -153,7 +153,7 @@ Tokenz is best-effort. A few caveats before you rely on it:
 - **The 95% alert is late by design.** By the time it fires you're nearly out for the window. If you want earlier warning, watch for the 70% one.
 - **A number with a tilde is a last-known value.** It doesn't include anything used on the web, mobile or another machine since the last update.
 - **Per-model limits aren't shown yet.** Some models (Fable, for one) have their own weekly limit. Claude Code only passes the 5-hour and the general weekly window to the status line today, so check `/usage` in Claude Code for the others. If Claude Code starts passing them, Tokenz shows them as extra rows automatically.
-- **"This week by model" is an estimate.** It is the share of your Claude Code usage on this Mac that went to each model, worked out from each session's own cost figures (or API time when there is no cost). It doesn't include the web, mobile or other machines, and it is not how close you are to a model's own limit.
+- **"Where your usage went" is a split, not a limit.** It is the share of your Claude Code usage on this Mac that went to each model since the app started counting this week (the popover says when), worked out from each session's own cost figures (or API time when there is no cost). It doesn't include the web, mobile or other machines, and it is not how close you are to a model's own limit.
 
 Use it as background information. If hitting a window mid-task would cost you real money or break a deadline, keep your own habit running too.
 

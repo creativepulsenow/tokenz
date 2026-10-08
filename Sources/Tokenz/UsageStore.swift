@@ -13,6 +13,8 @@ final class UsageStore: ObservableObject {
     @Published private(set) var extraLimits: [ExtraLimit] = []
     /// How this week's usage on this Mac splits across models, largest first.
     @Published private(set) var modelShares: [ModelShare] = []
+    /// When counting for `modelShares` began, if known.
+    @Published private(set) var modelSharesSince: Date?
     @Published var lastUpdated: Date? = nil
     @Published var isStale: Bool = true       // true after staleAfter seconds: show ~94%
     /// Bumped every 30s by `clockTickTimer` to force the menu bar countdown
@@ -104,8 +106,10 @@ final class UsageStore: ObservableObject {
               let usage = try? JSONDecoder().decode(ModelUsage.self, from: data),
               abs(usage.weekResetsAt - week.timeIntervalSince1970) < UsageMerge.sameWindowTolerance else {
             modelShares = []
+            modelSharesSince = nil
             return
         }
+        modelSharesSince = Self.sanitizeTimestamp(usage.countingSince).flatMap { $0 <= Date() ? $0 : nil }
         var rows: [ModelShare] = []
         var other = 0.0
         for (model, share) in usage.shares() {

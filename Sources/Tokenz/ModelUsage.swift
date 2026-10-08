@@ -18,18 +18,25 @@ struct ModelUsage: Codable, Equatable {
     /// The weekly window these totals belong to.
     var weekResetsAt: Double
     var models: [String: Amount] = [:]
+    /// When the first increase of this week was counted. The totals only
+    /// cover usage from then on, which matters when the app was installed (or
+    /// not running a status line) for part of the week. Absent in files
+    /// written by 1.5.0.
+    var countingSince: Double?
 
     /// More models than this in one week means junk input, not real usage.
     static let maxModels = 16
 
     /// Adds one session's increase. Starts over when the weekly window has
     /// moved on (`weekResetsAt` is that window's reset time).
-    mutating func add(model: String, cost: Double, time: Double, weekResetsAt week: Double) {
+    mutating func add(model: String, cost: Double, time: Double, weekResetsAt week: Double,
+                      now: Double = Date().timeIntervalSince1970) {
         if abs(week - weekResetsAt) >= UsageMerge.sameWindowTolerance {
             self = ModelUsage(weekResetsAt: week)
         }
         guard cost.isFinite, time.isFinite, cost >= 0, time >= 0, cost > 0 || time > 0 else { return }
         guard models[model] != nil || models.count < Self.maxModels else { return }
+        if countingSince == nil { countingSince = now }
         models[model, default: Amount()].cost += cost
         models[model, default: Amount()].time += time
     }

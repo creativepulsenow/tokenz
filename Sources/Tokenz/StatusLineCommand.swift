@@ -175,7 +175,7 @@ enum StatusLineCommand {
         AppPaths.writeAtomically(data, to: AppPaths.usageFile())
     }
 
-    // MARK: - This week by model
+    // MARK: - Usage by model
 
     /// Adds one session's increase to this week's per-model totals. Sessions
     /// run concurrently, so the read-change-write happens under a file lock;
@@ -195,7 +195,8 @@ enum StatusLineCommand {
         var usage = AppPaths.readSmallFile(path)
             .flatMap { try? JSONDecoder().decode(ModelUsage.self, from: $0) }
             ?? ModelUsage(weekResetsAt: weekResetsAt)
-        usage.add(model: model, cost: cost, time: time, weekResetsAt: weekResetsAt)
+        usage.add(model: model, cost: cost, time: time, weekResetsAt: weekResetsAt,
+                  now: Date().timeIntervalSince1970)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         if let data = try? encoder.encode(usage) { AppPaths.writeAtomically(data, to: path) }
