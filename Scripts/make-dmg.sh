@@ -50,13 +50,18 @@ fi
 BINARY="${APP_PATH}/Contents/MacOS/${APP_NAME}"
 echo "==> Verifying the build"
 codesign --verify --deep --strict "$APP_PATH"
-if ! codesign -dv "$APP_PATH" 2>&1 | grep -q 'flags=.*runtime'; then
-  echo "ERROR: hardened runtime is not enabled"; exit 1
-fi
-if codesign -d --entitlements - "$APP_PATH" 2>/dev/null | grep -q 'get-task-allow'; then
-  echo "ERROR: debug entitlement get-task-allow is present"; exit 1
-fi
-if LC_ALL=C grep -a -q '/Users/' "$BINARY"; then
+# Capture first: with pipefail, `grep -q` closing the pipe early can make the
+# left side fail and turn a pass into a false alarm.
+SIGNATURE="$(codesign -dv "$APP_PATH" 2>&1)"
+ENTITLEMENTS="$(codesign -d --entitlements - "$APP_PATH" 2>/dev/null || true)"
+case "$SIGNATURE" in
+  *flags=*runtime*) ;;
+  *) echo "ERROR: hardened runtime is not enabled"; exit 1 ;;
+esac
+case "$ENTITLEMENTS" in
+  *get-task-allow*) echo "ERROR: debug entitlement get-task-allow is present"; exit 1 ;;
+esac
+if LC_ALL=C grep -a -c '/Users/' "$BINARY" > /dev/null; then
   echo "ERROR: the binary contains local /Users/ paths"; exit 1
 fi
 
