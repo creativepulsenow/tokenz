@@ -190,8 +190,11 @@ enum StatusLineCommand {
 
         var environment = ProcessInfo.processInfo.environment
         environment[chainedMarker] = "1"
-        let argv: [UnsafeMutablePointer<CChar>?] = ["sh", "-c", command].map { strdup($0) } + [nil]
-        let envp: [UnsafeMutablePointer<CChar>?] = environment.map { strdup("\($0.key)=\($0.value)") } + [nil]
+        // Spelled out step by step: older compilers can't infer these in one expression.
+        let arguments: [String] = ["sh", "-c", command]
+        let variables: [String] = environment.map { "\($0.key)=\($0.value)" }
+        let argv: [UnsafeMutablePointer<CChar>?] = arguments.map { strdup($0) } + [nil]
+        let envp: [UnsafeMutablePointer<CChar>?] = variables.map { strdup($0) } + [nil]
         defer { (argv + envp).forEach { free($0) } }
 
         // Claude Code cancels a status line that is still running when the
