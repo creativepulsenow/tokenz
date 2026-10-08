@@ -17,7 +17,6 @@
 		4E69CBFD31D8FA3A809D0C7F /* ConnectionCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A09F176AFA3C820BF77B9A /* ConnectionCommandTests.swift */; };
 		539EBAACF2C0113BE79430B0 /* StatusLineCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 382B31391A57DF8889E17545 /* StatusLineCommand.swift */; };
 		62EB599B5074D0FA03C6BDAF /* LoginItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1538AEE4A04E171D268D0C44 /* LoginItemController.swift */; };
-		7405222053B28FE6AAAB0CB7 /* ModelUsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3004AEE946C47704B5904699 /* ModelUsageTests.swift */; };
 		7708F6CF6081BA412D1B6414 /* UsageFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DABCD677DFB82E88C0D8B5B /* UsageFormat.swift */; };
 		77614EDD0BF23FF02BCCA3B0 /* UsagePopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC146D6C80CFAEA7C6D0C1BE /* UsagePopoverView.swift */; };
 		7A34472E4F11042E01A6BF23 /* UsageMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2023C684DDB6EA7EB49BE2 /* UsageMerge.swift */; };
@@ -29,11 +28,9 @@
 		AA0BC132BE5799A917D3A318 /* UsageMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2023C684DDB6EA7EB49BE2 /* UsageMerge.swift */; };
 		AB94E295A2384509BB60BC4E /* AlertRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89EE4C893545F3D84D5C64D7 /* AlertRules.swift */; };
 		C1012F9CA4C46D57B35D4F19 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3C63F2021D2DB6143B9991 /* AppDelegate.swift */; };
-		C153D82E0DAB3EE05BA6E17C /* ModelUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96777A54A119F0925697127A /* ModelUsage.swift */; };
 		C43C4F979F8289563F81889D /* TokenzApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223D0B9FF5F8F322C4EDB22B /* TokenzApp.swift */; };
 		C89F15A12B1FB570E13F74B9 /* UsageMergeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49E544006FEDDCD7584635B6 /* UsageMergeTests.swift */; };
 		CFBAF540C64A808C4C0AD1C6 /* UsageFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A87DE5E6068F3667809A496 /* UsageFormatTests.swift */; };
-		DC6683EA11A9BF3659D35ADA /* ModelUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96777A54A119F0925697127A /* ModelUsage.swift */; };
 		E9DAE59080F6D26F7B235CED /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8C91899C40B4DC574C671307 /* Assets.xcassets */; };
 		F7D6248649BCAE3E5FDBDBA1 /* AlertRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89EE4C893545F3D84D5C64D7 /* AlertRules.swift */; };
 		FC9BC690AA3F9A6CB7E02E04 /* AppPaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B000639E967248ACF71F7D4 /* AppPaths.swift */; };
@@ -43,7 +40,6 @@
 		1538AEE4A04E171D268D0C44 /* LoginItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemController.swift; sourceTree = "<group>"; };
 		223D0B9FF5F8F322C4EDB22B /* TokenzApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenzApp.swift; sourceTree = "<group>"; };
 		2DABCD677DFB82E88C0D8B5B /* UsageFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageFormat.swift; sourceTree = "<group>"; };
-		3004AEE946C47704B5904699 /* ModelUsageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelUsageTests.swift; sourceTree = "<group>"; };
 		382B31391A57DF8889E17545 /* StatusLineCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusLineCommand.swift; sourceTree = "<group>"; };
 		49E544006FEDDCD7584635B6 /* UsageMergeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageMergeTests.swift; sourceTree = "<group>"; };
 		56D504F52DA8E3F82EA6221E /* ClaudeCodeConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeConnection.swift; sourceTree = "<group>"; };
@@ -54,7 +50,6 @@
 		89EE4C893545F3D84D5C64D7 /* AlertRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertRules.swift; sourceTree = "<group>"; };
 		8A3C63F2021D2DB6143B9991 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		8C91899C40B4DC574C671307 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		96777A54A119F0925697127A /* ModelUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelUsage.swift; sourceTree = "<group>"; };
 		9A87DE5E6068F3667809A496 /* UsageFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageFormatTests.swift; sourceTree = "<group>"; };
 		9D2023C684DDB6EA7EB49BE2 /* UsageMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageMerge.swift; sourceTree = "<group>"; };
 		A4DE03D37E063C3FEECC9B3E /* TokenzTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TokenzTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,7 +91,6 @@
 				C4A636E7850F60BEE06B1B30 /* FileWatcher.swift */,
 				1538AEE4A04E171D268D0C44 /* LoginItemController.swift */,
 				DF41E274493AEAF8B24D9157 /* Models.swift */,
-				96777A54A119F0925697127A /* ModelUsage.swift */,
 				E6D2D5E30AC79EAD6D46F501 /* SettingsEditor.swift */,
 				382B31391A57DF8889E17545 /* StatusLineCommand.swift */,
 				223D0B9FF5F8F322C4EDB22B /* TokenzApp.swift */,
@@ -139,7 +133,6 @@
 			children = (
 				7099A57CD0CB3A91B5CF61BC /* AlertRulesTests.swift */,
 				B9A09F176AFA3C820BF77B9A /* ConnectionCommandTests.swift */,
-				3004AEE946C47704B5904699 /* ModelUsageTests.swift */,
 				86EA805842BE51C8D45A0494 /* SettingsEditorTests.swift */,
 				9A87DE5E6068F3667809A496 /* UsageFormatTests.swift */,
 				49E544006FEDDCD7584635B6 /* UsageMergeTests.swift */,
@@ -245,7 +238,6 @@
 				A21B2704AFA3D96009DFB7AC /* ClaudeCodeConnection.swift in Sources */,
 				2F401F2B15DA02C43BC54E1A /* FileWatcher.swift in Sources */,
 				62EB599B5074D0FA03C6BDAF /* LoginItemController.swift in Sources */,
-				C153D82E0DAB3EE05BA6E17C /* ModelUsage.swift in Sources */,
 				4733D066E0D5BAE1B0EE2C5D /* Models.swift in Sources */,
 				1292A468043C5D33DACAB768 /* SettingsEditor.swift in Sources */,
 				539EBAACF2C0113BE79430B0 /* StatusLineCommand.swift in Sources */,
@@ -266,8 +258,6 @@
 				0E8C7EEB89EEE28723EDBE05 /* AppPaths.swift in Sources */,
 				8C7FD94720786AAF1B3B2C31 /* ClaudeCodeConnection.swift in Sources */,
 				4E69CBFD31D8FA3A809D0C7F /* ConnectionCommandTests.swift in Sources */,
-				DC6683EA11A9BF3659D35ADA /* ModelUsage.swift in Sources */,
-				7405222053B28FE6AAAB0CB7 /* ModelUsageTests.swift in Sources */,
 				3B75D903149A9FBF0BDCCD18 /* SettingsEditor.swift in Sources */,
 				223E715D259BCF4AB1643AB3 /* SettingsEditorTests.swift in Sources */,
 				A94B8AC5045A9180ECEA565E /* UsageFormat.swift in Sources */,

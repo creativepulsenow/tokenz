@@ -11,10 +11,6 @@ final class UsageStore: ObservableObject {
     @Published var modelName: String? = nil
     /// Limits beyond the two fixed rows, if Claude Code reports any.
     @Published private(set) var extraLimits: [ExtraLimit] = []
-    /// How this week's usage on this Mac splits across models, largest first.
-    @Published private(set) var modelShares: [ModelShare] = []
-    /// When counting for `modelShares` began, if known.
-    @Published private(set) var modelSharesSince: Date?
     @Published var lastUpdated: Date? = nil
     @Published var isStale: Bool = true       // true after staleAfter seconds: show ~94%
     /// Bumped every 30s by `clockTickTimer` to force the menu bar countdown
@@ -53,7 +49,6 @@ final class UsageStore: ObservableObject {
                   let percent = Self.sanitizePercent(entry.usedPercentage) else { return nil }
             return ExtraLimit(name: name, percent: percent, resetsAt: Self.sanitizeTimestamp(entry.resetsAt))
         }
-        reloadModelShares()
         // Prefer the writer's timestamp over our read time. The two are usually
         // close, but if the writer's timestamp is in the future or absurdly
         // stale, fall back to now so the relative-date string stays sane.
@@ -70,7 +65,7 @@ final class UsageStore: ObservableObject {
         resetStaleTimers(staleIn: Self.staleAfter - age)
     }
 
-    // MARK: - Extra limits and per-model breakdown
+    // MARK: - Extra limits
 
     struct ExtraLimit: Identifiable, Equatable {
         let name: String
@@ -79,55 +74,13 @@ final class UsageStore: ObservableObject {
         var id: String { name }
     }
 
-    struct ModelShare: Identifiable, Equatable {
-        let name: String
-        /// Fraction of this week's usage, 0...1.
-        let share: Double
-        var id: String { name }
-    }
-
     private static let maxExtraLimits = 8
-    /// Models listed by name in the breakdown; the rest are summed as "Other".
-    private static let maxModelRows = 4
 
     /// Extra limits whose window is still running. Unlike the two fixed rows
     /// there is no "0% after reset" for these: we don't know they still apply.
     var visibleExtraLimits: [ExtraLimit] {
         let now = Date()
         return extraLimits.filter { $0.resetsAt.map { $0 > now } ?? true }
-    }
-
-    /// Re-reads the per-model totals `--statusline` keeps. Called with every
-    /// usage update and when the popover opens. Totals from an earlier week
-    /// are not shown.
-    func reloadModelShares() {
-        guard let week = sevenDayResetsAt, !sevenDayWindowHasReset,
-              let data = AppPaths.readSmallFile(AppPaths.modelUsageFile()),
-              let usage = try? JSONDecoder().decode(ModelUsage.self, from: data),
-              abs(usage.weekResetsAt - week.timeIntervalSince1970) < UsageMerge.sameWindowTolerance else {
-            modelShares = []
-            modelSharesSince = nil
-            return
-        }
-        modelSharesSince = Self.sanitizeTimestamp(usage.countingSince).flatMap { $0 <= Date() ? $0 : nil }
-        var rows: [ModelShare] = []
-        var other = 0.0
-        for (model, share) in usage.shares() {
-            if rows.count < Self.maxModelRows, let name = Self.sanitizeModel(model) {
-                rows.append(ModelShare(name: name, share: share))
-            } else {
-                other += share
-            }
-        }
-        if other > 0 { rows.append(ModelShare(name: "Other", share: other)) }
-        modelShares = rows
-    }
-
-    /// True when the current model is Fable and Claude Code hasn't told us
-    /// its separate weekly limit, so the popover can point to where it is.
-    var showsFableHint: Bool {
-        guard let model = modelName?.lowercased(), model.contains("fable") else { return false }
-        return !visibleExtraLimits.contains { $0.name.lowercased().contains("fable") }
     }
 
     /// True once the file has been read at least once.

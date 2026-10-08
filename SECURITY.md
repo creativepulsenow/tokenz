@@ -22,9 +22,8 @@ Only the latest release gets fixes.
   when you click Connect, Update Connection or Disconnect.
 - It keeps its data in `~/Library/Application Support/Tokenz`: the usage
   numbers, one small record per Claude Code session (named after the
-  session id), this week's cost and API time per model, your previous
-  status line command if you had one, and the five most recent backups of
-  `settings.json`.
+  session id), your previous status line command if you had one, and the
+  five most recent backups of `settings.json`.
 - It stores which alerts have fired in its preferences
   (`com.creativepulsenow.tokenz`).
 - It makes no network calls.

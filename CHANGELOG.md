@@ -2,6 +2,11 @@
 
 Each release's section below is also its release notes.
 
+## 1.5.2
+
+- **Removed the per-model section and the Fable note.** A split of usage by model is not the same as a model's own limit, and showing one invited that confusion. Tokenz shows limits only.
+- **Still ready for a real Fable limit.** If Claude Code starts passing a per-model weekly limit to the status line, it appears as its own row, like the session and weekly ones.
+
 ## 1.5.1
 
 - **The per-model section no longer looks like a limit.** It is now one bar split between the models, titled "Where your usage went", and it says since when it has been counting. In 1.5.0 it was a row of bars with percentages right under the real limits, which read as more limits.

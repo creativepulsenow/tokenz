@@ -62,7 +62,6 @@ targets:
       - path: Sources/Tokenz/SettingsEditor.swift
       - path: Sources/Tokenz/ClaudeCodeConnection.swift
       - path: Sources/Tokenz/UsageMerge.swift
-      - path: Sources/Tokenz/ModelUsage.swift
       - path: Sources/Tokenz/AlertRules.swift
       - path: Sources/Tokenz/UsageFormat.swift
     settings:

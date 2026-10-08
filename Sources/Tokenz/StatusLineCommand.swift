@@ -50,12 +50,6 @@ enum StatusLineCommand {
             // dropped) do we note that we've seen it. If Claude Code cancels
             // this run earlier, the re-run must still count as news.
             record.save()
-            // After the record, so a canceled run can lose an increase but
-            // never count one twice.
-            if let model = model, let increase = record.increase,
-               let week = outcome.current.sevenDay?.resetsAt {
-                addModelUsage(model: model, cost: increase.cost, time: increase.time, weekResetsAt: week)
-            }
 
             // Print what the menu bar shows, not this session's own (possibly
             // older) numbers.
@@ -175,47 +169,15 @@ enum StatusLineCommand {
         AppPaths.writeAtomically(data, to: AppPaths.usageFile())
     }
 
-    // MARK: - Usage by model
-
-    /// Adds one session's increase to this week's per-model totals. Sessions
-    /// run concurrently, so the read-change-write happens under a file lock;
-    /// if the lock can't be had quickly, the increase is dropped rather than
-    /// holding up Claude Code's status line.
-    private static func addModelUsage(model: String, cost: Double, time: Double, weekResetsAt: Double) {
-        let path = AppPaths.modelUsageFile()
-        let lock = open(path + ".lock", O_CREAT | O_RDWR | O_NOFOLLOW, 0o600)
-        guard lock >= 0 else { return }
-        defer { close(lock) }   // also releases the lock
-        var attempts = 0
-        while flock(lock, LOCK_EX | LOCK_NB) != 0 {
-            attempts += 1
-            if attempts > 20 { return }
-            usleep(5_000)
-        }
-        var usage = AppPaths.readSmallFile(path)
-            .flatMap { try? JSONDecoder().decode(ModelUsage.self, from: $0) }
-            ?? ModelUsage(weekResetsAt: weekResetsAt)
-        usage.add(model: model, cost: cost, time: time, weekResetsAt: weekResetsAt,
-                  now: Date().timeIntervalSince1970)
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        if let data = try? encoder.encode(usage) { AppPaths.writeAtomically(data, to: path) }
-    }
-
     // MARK: - Per-session freshness
 
     /// What we remember about one Claude Code session between runs: its
-    /// accumulated API time and cost. API time only grows when the session
-    /// gets an API reply, which is also the only time its usage numbers are
-    /// refreshed.
+    /// accumulated API time. That only grows when the session gets an API
+    /// reply, which is also the only time its usage numbers are refreshed.
     private struct SessionRecord {
         private let file: String?
         private let apiTime: Double?
-        private let cost: Double?
         let freshness: UsageMerge.Freshness
-        /// How much the session's cost and API time grew since its last run.
-        /// Nil on first sighting, when there is nothing to compare against.
-        let increase: (cost: Double, time: Double)?
 
         private static let idCharacters = CharacterSet(charactersIn:
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_")
@@ -228,44 +190,29 @@ enum StatusLineCommand {
                   let apiTime = number((session["cost"] as? [String: Any])?["total_api_duration_ms"]) else {
                 file = nil
                 apiTime = nil
-                cost = nil
                 freshness = .unknown
-                increase = nil
                 return
             }
-            let cost = number((session["cost"] as? [String: Any])?["total_cost_usd"])
             // One small file per session: sessions run concurrently, and a
-            // shared file would lose updates. It holds the API time, then the
-            // cost if Claude Code reported one.
+            // shared file would lose updates. Only the leading number counts
+            // (1.5.0 and 1.5.1 wrote a second one after it).
             let file = (AppPaths.sessionsDirectory() as NSString).appendingPathComponent(id)
-            let recorded = (AppPaths.readSmallFile(file, maxBytes: 64).map { String(decoding: $0, as: UTF8.self) } ?? "")
-                .split(separator: " ").map { Double($0) }
-            let recordedTime = recorded.first ?? nil
-            let recordedCost = recorded.count > 1 ? recorded[1] : nil
+            let recorded = AppPaths.readSmallFile(file, maxBytes: 64)
+                .flatMap { String(decoding: $0, as: UTF8.self).split(separator: " ").first }
+                .flatMap { Double($0) }
             self.file = file
             self.apiTime = apiTime
-            self.cost = cost
-            if let recordedTime = recordedTime {
-                freshness = recordedTime == apiTime ? .stale : .fresh
-                // A counter that went backward means the session restarted;
-                // there is no telling how much of the new total is new.
-                if apiTime > recordedTime {
-                    let costIncrease = cost.flatMap { now in recordedCost.map { max(0, now - $0) } } ?? 0
-                    increase = (cost: costIncrease, time: apiTime - recordedTime)
-                } else {
-                    increase = nil
-                }
+            if let recorded = recorded {
+                freshness = recorded == apiTime ? .stale : .fresh
             } else {
                 // First sighting: the reading could be seconds or hours old.
                 freshness = .unknown
-                increase = nil
             }
         }
 
         func save() {
             guard let file = file, let apiTime = apiTime, freshness != .stale else { return }
-            let text = cost.map { "\(apiTime) \($0)" } ?? "\(apiTime)"
-            AppPaths.writeAtomically(Data(text.utf8), to: file)
+            AppPaths.writeAtomically(Data(String(apiTime).utf8), to: file)
         }
     }
 

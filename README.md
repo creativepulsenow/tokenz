@@ -32,7 +32,6 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 - **Always visible** — when Claude Code goes quiet, the last-known number stays up with a tilde (`~51%`) until the window resets, then reads `~0%`.
 - **Threshold notifications** — one alert per threshold per window. A first launch at 95% gets one notification, not three.
 - **One-click setup** — a **Connect to Claude Code** button does the wiring. No Terminal, no Homebrew. If you already have a custom status line, it keeps showing.
-- **Where your usage went** — the popover estimates how your Claude Code usage on this Mac splits across models (Fable, Opus, Sonnet).
 - **Right with many sessions open** — an idle Claude Code session can't overwrite the current number with an old one.
 - **Launch at Login** — one-click toggle, backed by `SMAppService`.
 - **Small** — about 1,700 lines of Swift, unit tests for the logic that edits your settings, zero third-party dependencies.
@@ -152,8 +151,7 @@ Tokenz is best-effort. A few caveats before you rely on it:
 - **Notifications can be missed.** Thresholds only fire while the app is running and an update arrives that crosses them. Cross 85% on the web while Tokenz is closed and that alert is skipped.
 - **The 95% alert is late by design.** By the time it fires you're nearly out for the window. If you want earlier warning, watch for the 70% one.
 - **A number with a tilde is a last-known value.** It doesn't include anything used on the web, mobile or another machine since the last update.
-- **Per-model limits aren't shown yet.** Some models (Fable, for one) have their own weekly limit. Claude Code only passes the 5-hour and the general weekly window to the status line today, so check `/usage` in Claude Code for the others. If Claude Code starts passing them, Tokenz shows them as extra rows automatically.
-- **"Where your usage went" is a split, not a limit.** It is the share of your Claude Code usage on this Mac that went to each model since the app started counting this week (the popover says when), worked out from each session's own cost figures (or API time when there is no cost). It doesn't include the web, mobile or other machines, and it is not how close you are to a model's own limit.
+- **Per-model limits aren't shown.** Some models have their own weekly limit. Claude Code only passes the 5-hour and the general weekly window to the status line today, so check `/usage` in Claude Code for the others. If Claude Code starts passing them, Tokenz shows them as extra rows automatically.
 
 Use it as background information. If hitting a window mid-task would cost you real money or break a deadline, keep your own habit running too.
 
@@ -163,7 +161,7 @@ Use it as background information. If hitting a window mid-task would cost you re
 - **`usage.json` is read defensively.** The app opens it without following symlinks, checks the open file is a small regular file, then reads. The file and its directory are owner-only.
 - **Connect changes one entry in `~/.claude/settings.json` and nothing else.** It re-parses its own edit and refuses to write if anything other than `statusLine` would differ. It refuses a file that isn't valid JSON, lists `statusLine` twice, is read-only, or changed while it was working (checked right before the write). It writes through symlinks so dotfile managers (stow, chezmoi, yadm) keep working.
 - **Backups stay private.** Before each change the app saves a full copy of `settings.json` in `~/Library/Application Support/Tokenz/settings-backups`, owner-only, and keeps the newest five. They contain whatever you keep in that file.
-- **What it keeps.** Claude Code passes session details to every status line command. Tokenz stores the usage percentages, their reset times, the model name, one small record per session (the session id with its accumulated API time and cost), and this week's totals per model. It never asks for your Claude login and does not read or store tokens, the Keychain, or your conversations.
+- **What it keeps.** Claude Code passes session details to every status line command. Tokenz stores the usage percentages, their reset times, the model name, and one small record per session (the session id and its accumulated API time). It never asks for your Claude login and does not read or store tokens, the Keychain, or your conversations.
 - **What it runs.** The only program the app ever starts is the status line command saved in `~/Library/Application Support/Tokenz/chained-statusline-command`: your previous status line, if you had one when you connected. It receives the same session details Claude Code would have given it. The popover shows that command and lets you stop it.
 - **Release builds** use the hardened runtime, carry no entitlements, are stripped, and contain no build-machine paths. `Scripts/make-dmg.sh` fails if any of that stops being true.
 - **No sandbox.** The app has to edit `~/.claude/settings.json` and share an Application Support path with the `--statusline` process that Claude Code launches.

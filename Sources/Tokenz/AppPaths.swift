@@ -30,11 +30,6 @@ enum AppPaths {
         ensureDirectory((dataDirectory() as NSString).appendingPathComponent("settings-backups"))
     }
 
-    /// This week's usage per model, as estimated by `--statusline`.
-    static func modelUsageFile() -> String {
-        (dataDirectory() as NSString).appendingPathComponent("models.json")
-    }
-
     /// The status line command the user had before connecting, if any.
     static func chainedCommandFile() -> String {
         (dataDirectory() as NSString).appendingPathComponent("chained-statusline-command")
@@ -108,6 +103,10 @@ enum AppPaths {
                       now.timeIntervalSince(modified) > age else { continue }
                 try? fm.removeItem(atPath: path)
             }
+        }
+        // 1.5.0 and 1.5.1 kept per-model totals here. Nothing reads them now.
+        for leftover in ["models.json", "models.json.lock"] {
+            try? fm.removeItem(atPath: (dataDirectory() as NSString).appendingPathComponent(leftover))
         }
         let hour: TimeInterval = 3600
         let isTemp: (String) -> Bool = { $0.contains(temporarySuffix) }
