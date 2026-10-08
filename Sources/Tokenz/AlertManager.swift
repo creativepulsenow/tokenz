@@ -38,16 +38,19 @@ final class AlertManager {
 
         var state = load(metric) ?? WindowState(resetsAt: resetsAtEpoch, firedThresholds: [])
 
-        // New window detected (resets_at changed), clear fired thresholds
-        if state.resetsAt != resetsAtEpoch {
+        // A new window has a later reset time. Only that clears the fired
+        // thresholds: a writer flipping resets_at back and forth must not be
+        // able to replay the alerts. A stored reset time further out than any
+        // real window (the longest is 7 days) is junk, so start over from it.
+        let isNewWindow = resetsAtEpoch > state.resetsAt + 300
+        let storedIsJunk = state.resetsAt > Date().timeIntervalSince1970 + 8 * 86_400
+        if isNewWindow || storedIsJunk {
             state = WindowState(resetsAt: resetsAtEpoch, firedThresholds: [])
         }
 
         // Fire one notification for the highest threshold crossed in this update,
         // and mark all crossed thresholds as fired so we don't backfill on the
-        // next tick. Avoids notification storms on first install at 95%, and
-        // makes a hostile writer flipping resets_at unable to spam more than one
-        // notification per window flip.
+        // next tick. Avoids notification storms on first install at 95%.
         let crossed = thresholds.filter { pct >= $0 && !state.firedThresholds.contains($0) }
         if let highest = crossed.max() {
             state.firedThresholds.formUnion(crossed)

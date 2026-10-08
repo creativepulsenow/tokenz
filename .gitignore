@@ -15,11 +15,7 @@ DerivedData/
 *.dSYM
 
 # Build artifacts
-build/xcode-derived/
-build/*.app/
-build/Tokenz-*/
-build/ClaudeMonitor-*/
-build/dmg-staging/
+build/
 *.zip
 *.dmg
 
@@ -41,7 +37,8 @@ Package.resolved
 *~
 
 # Project-local state
-.claude/state/
+.claude/
+CLAUDE.local.md
 
 # Screenshot working files (raw screenshots may contain other apps' UI)
 docs/_*.png

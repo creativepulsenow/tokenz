@@ -37,11 +37,15 @@ final class UsageStore: ObservableObject {
         // Prefer the writer's timestamp over our read time. The two are usually
         // close, but if the writer's timestamp is in the future or absurdly
         // stale, fall back to now so the relative-date string stays sane.
-        let updated = Self.sanitizeReset(data.updatedAt) ?? Date()
+        let now = Date()
+        var updated = Self.sanitizeReset(data.updatedAt) ?? now
+        // A timestamp from the future (a spoofed file, or the clock moved back)
+        // would keep the number looking fresh forever.
+        if updated.timeIntervalSince(now) > 60 { updated = now }
         lastUpdated = updated
         // Age from the writer's timestamp, not from when we read the file, so a
         // relaunch hours later doesn't present an old number as fresh.
-        let age = Date().timeIntervalSince(updated)
+        let age = max(0, now.timeIntervalSince(updated))
         isStale = age >= Self.staleAfter
         resetStaleTimers(staleIn: Self.staleAfter - age)
     }
@@ -75,12 +79,14 @@ final class UsageStore: ObservableObject {
     /// writer can't corrupt the popover layout or visually spoof the model name.
     private static func sanitizeModel(_ s: String?) -> String? {
         guard let s = s else { return nil }
-        let capped = String(s.prefix(64))
-        let bidiOverrides: Set<UInt32> = [0x202A, 0x202B, 0x202C, 0x202D, 0x202E,
-                                          0x2066, 0x2067, 0x2068, 0x2069]
-        let scrubbed = capped.unicodeScalars.filter { scalar in
+        // Bidi overrides and line / paragraph separators.
+        let blocked: Set<UInt32> = [0x202A, 0x202B, 0x202C, 0x202D, 0x202E,
+                                    0x2066, 0x2067, 0x2068, 0x2069, 0x2028, 0x2029]
+        // Cap scalars, not characters: one "character" can carry thousands of
+        // stacked combining marks.
+        let scrubbed = s.unicodeScalars.prefix(64).filter { scalar in
             !CharacterSet.controlCharacters.contains(scalar) &&
-            !bidiOverrides.contains(scalar.value)
+            !blocked.contains(scalar.value)
         }
         let result = String(String.UnicodeScalarView(scrubbed))
         return result.isEmpty ? nil : result

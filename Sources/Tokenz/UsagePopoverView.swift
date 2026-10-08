@@ -189,7 +189,7 @@ struct ConnectionPanel: View {
         case .otherStatusLine:
             return "Connect keeps your status line showing and adds Tokenz alongside it. A backup of settings.json is saved first."
         case .settingsUnreadable:
-            return "~/.claude/settings.json isn't valid JSON, so Tokenz won't change it. Fix the file, then reopen this window."
+            return "~/.claude/settings.json isn't valid JSON, or lists statusLine more than once, so Tokenz won't change it. Fix the file, then reopen this window."
         case .appNotInstalled:
             return "Drag Tokenz into your Applications folder and open it from there to connect it to Claude Code."
         }

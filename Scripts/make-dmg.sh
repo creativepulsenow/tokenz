@@ -18,9 +18,18 @@ DERIVED="${REPO_ROOT}/build/xcode-derived"
 APP_DEFAULT="${DERIVED}/Build/Products/Release/${APP_NAME}.app"
 APP_PATH="${1:-${APP_DEFAULT}}"
 
-# Build if needed
+# A release must be buildable from what is committed. Refuse a dirty tree
+# unless explicitly overridden (ALLOW_DIRTY=1) for local test builds.
+if [ -z "${ALLOW_DIRTY:-}" ] && [ -n "$(git status --porcelain)" ]; then
+  echo "ERROR: working tree has uncommitted changes. Commit first, or set ALLOW_DIRTY=1."
+  exit 1
+fi
+
+# Build if needed. Always from scratch, so nothing stale from an earlier
+# build can end up in the bundle.
 if [ ! -d "$APP_PATH" ] || [ -z "${1:-}" ]; then
   echo "==> Building Release configuration (universal: arm64 + x86_64)"
+  rm -rf "${DERIVED}/Build"
   xcodebuild \
     -project "${APP_NAME}.xcodeproj" \
     -scheme "${APP_NAME}" \
@@ -35,6 +44,20 @@ fi
 if [ ! -d "$APP_PATH" ]; then
   echo "ERROR: $APP_PATH does not exist"
   exit 1
+fi
+
+# Checks every shipped build must pass.
+BINARY="${APP_PATH}/Contents/MacOS/${APP_NAME}"
+echo "==> Verifying the build"
+codesign --verify --deep --strict "$APP_PATH"
+if ! codesign -dv "$APP_PATH" 2>&1 | grep -q 'flags=.*runtime'; then
+  echo "ERROR: hardened runtime is not enabled"; exit 1
+fi
+if codesign -d --entitlements - "$APP_PATH" 2>/dev/null | grep -q 'get-task-allow'; then
+  echo "ERROR: debug entitlement get-task-allow is present"; exit 1
+fi
+if LC_ALL=C grep -a -q '/Users/' "$BINARY"; then
+  echo "ERROR: the binary contains local /Users/ paths"; exit 1
 fi
 
 # Read version from the app's Info.plist (single source of truth)
@@ -73,8 +96,8 @@ INSTALL
    of the file is saved first, and an existing status line of your
    own keeps showing.
 
-4. Quit and relaunch Claude Code (Cmd+Q, then reopen), then send any
-   message so it reports the first batch of usage data.
+4. Send any message in Claude Code so it reports the first batch of
+   usage data. (If nothing shows up, quit and relaunch Claude Code.)
 
 FIRST LAUNCH (Gatekeeper)
 -------------------------
@@ -99,6 +122,7 @@ REQUIREMENTS
 UNINSTALL
 ---------
   - Click the menu bar item, then "Disconnect from Claude Code".
+    Do this first, or Claude Code keeps trying to run the deleted app.
   - Quit Tokenz.
   - Drag Tokenz.app from /Applications to the Trash.
   - Optional: rm -rf ~/Library/Application\\ Support/Tokenz

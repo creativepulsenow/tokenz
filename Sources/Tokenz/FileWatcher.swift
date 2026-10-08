@@ -103,18 +103,23 @@ final class FileWatcher {
 
     private func readFile() {
         // Any process running as the user can write here. Only read a small
-        // regular file: not a symlink, a device, or something huge.
-        // (`attributesOfItem` doesn't follow symlinks.)
-        guard let info = try? FileManager.default.attributesOfItem(atPath: filePath),
-              info[.type] as? FileAttributeType == .typeRegular,
-              let size = info[.size] as? Int, size <= Self.maxFileBytes else {
-            return
-        }
-        guard let data = FileManager.default.contents(atPath: filePath),
+        // regular file: not a symlink, a FIFO, a device, or something huge.
+        // Open first, then check the open descriptor, so the file can't be
+        // swapped between the check and the read. O_NONBLOCK keeps a FIFO from
+        // hanging the open.
+        let fd = open(filePath, O_RDONLY | O_NOFOLLOW | O_NONBLOCK)
+        guard fd >= 0 else { return }
+        let handle = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+        var info = stat()
+        guard fstat(fd, &info) == 0,
+              (info.st_mode & S_IFMT) == S_IFREG,
+              info.st_size <= Self.maxFileBytes,
+              let data = try? handle.read(upToCount: Self.maxFileBytes),
               !data.isEmpty,
               let parsed = try? JSONDecoder().decode(UsageFileData.self, from: data) else {
             return
         }
+        // Same source as `pollOnce`, so the two compare equal.
         if let attrs = try? FileManager.default.attributesOfItem(atPath: filePath),
            let mtime = attrs[.modificationDate] as? Date {
             lastModified = mtime

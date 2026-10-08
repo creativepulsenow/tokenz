@@ -44,5 +44,14 @@ targets:
         ENABLE_HARDENED_RUNTIME: true
         CODE_SIGN_INJECT_BASE_ENTITLEMENTS: false
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        LD_RUNPATH_SEARCH_PATHS:
-          - "@executable_path/../Frameworks"
+        # Keep the build machine's paths out of the binary: record source
+        # paths relative to the repo.
+        OTHER_SWIFT_FLAGS: "$(inherited) -file-prefix-map $(SRCROOT)=."
+      configs:
+        Release:
+          # Strip local symbols and debug stabs from shipped builds. They
+          # carry absolute object-file paths, and with them the user name.
+          DEPLOYMENT_POSTPROCESSING: true
+          STRIP_INSTALLED_PRODUCT: true
+          STRIP_STYLE: non-global
+          COPY_PHASE_STRIP: true

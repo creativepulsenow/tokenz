@@ -10,6 +10,10 @@ enum SettingsEditor {
     enum EditError: Error {
         /// The file isn't a JSON object. We refuse to touch it.
         case notJSONObject
+        /// `statusLine` (or its `command`) appears more than once. Parsers
+        /// disagree on which one wins, so an edit could miss the one Claude
+        /// Code actually uses.
+        case duplicateKeys
         /// The edit didn't produce exactly the change we intended.
         case verificationFailed
     }
@@ -17,7 +21,8 @@ enum SettingsEditor {
     /// The current `statusLine.command`, or nil if there is none.
     /// Throws if the file exists but isn't a JSON object.
     static func statusLineCommand(in data: Data?) throws -> String? {
-        guard let root = try parse(data) else { return nil }
+        guard let data = data, let root = try parse(data) else { return nil }
+        _ = try scan(data)
         return (root["statusLine"] as? [String: Any])?["command"] as? String
     }
 
@@ -27,10 +32,7 @@ enum SettingsEditor {
         guard let data = data, let root = try parse(data) else {
             return Data("{\n  \"statusLine\": \(freshStatusLine(command, indent: "  "))\n}\n".utf8)
         }
-        let bytes = [UInt8](data)
-        guard let open = topLevelOpen(bytes), let (members, close) = Self.members(bytes, objectAt: open) else {
-            throw EditError.notJSONObject
-        }
+        let (bytes, open, members, close) = try scan(data)
         let indent = memberIndent(bytes, members: members)
         var expected = root
         var edited = bytes
@@ -64,10 +66,7 @@ enum SettingsEditor {
     /// Returns the settings with the `statusLine` entry removed.
     static func removingStatusLine(in data: Data) throws -> Data {
         guard let root = try parse(data) else { throw EditError.notJSONObject }
-        let bytes = [UInt8](data)
-        guard let open = topLevelOpen(bytes), let (members, close) = Self.members(bytes, objectAt: open) else {
-            throw EditError.notJSONObject
-        }
+        let (bytes, open, members, close) = try scan(data)
         guard let index = members.firstIndex(where: { $0.key == "statusLine" }) else { return data }
         var edited = bytes
         if members.count == 1 {
@@ -94,6 +93,23 @@ enum SettingsEditor {
             throw EditError.notJSONObject
         }
         return root
+    }
+
+    /// Locates the top-level members, and refuses a file where `statusLine` or
+    /// its `command` is ambiguous.
+    private static func scan(_ data: Data) throws -> (bytes: [UInt8], open: Int, members: [Member], close: Int) {
+        let bytes = [UInt8](data)
+        guard let open = topLevelOpen(bytes), let (members, close) = Self.members(bytes, objectAt: open) else {
+            throw EditError.notJSONObject
+        }
+        let statusLines = members.filter { $0.key == "statusLine" }
+        guard statusLines.count <= 1 else { throw EditError.duplicateKeys }
+        if let statusLine = statusLines.first,
+           let (inner, _) = Self.members(bytes, objectAt: statusLine.valueStart),
+           inner.filter({ $0.key == "command" }).count > 1 {
+            throw EditError.duplicateKeys
+        }
+        return (bytes, open, members, close)
     }
 
     private static func verified(_ bytes: [UInt8], equals expected: [String: Any]) throws -> Data {

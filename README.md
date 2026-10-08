@@ -45,13 +45,13 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 
 ## Install (prebuilt)
 
-1. Download **`Tokenz-1.4.0.dmg`** from the [latest release](https://github.com/creativepulsenow/tokenz/releases/latest).
+1. Download **`Tokenz-1.4.1.dmg`** from the [latest release](https://github.com/creativepulsenow/tokenz/releases/latest).
 2. Open the DMG and drag `Tokenz.app` onto the Applications shortcut.
    *(Connecting to Claude Code, "Launch at Login" and notifications all need the app to live in `/Applications`.)*
 3. Launch `Tokenz.app` from `/Applications`. **First time only:** macOS will refuse to open it because the app is ad-hoc signed and not yet notarized. Open **System Settings → Privacy & Security**, scroll down to the message about Tokenz, and click **Open Anyway**. (On macOS 14 you can instead right-click the app → **Open**.) Every later launch is normal.
 4. Click the menu bar item, then **Connect to Claude Code**.
    This adds a `statusLine` entry to `~/.claude/settings.json`. The app saves a backup of the file first, changes nothing else in it, refuses if the file isn't valid JSON, and writes through symlinks so dotfile managers keep working.
-5. Quit and relaunch Claude Code, then send any message so it reports the first batch of usage data.
+5. Send any message in Claude Code so it reports the first batch of usage data. (If nothing shows up, quit and relaunch Claude Code once.)
 
 You should see an asterisk and a percentage in your menu bar.
 
@@ -166,19 +166,26 @@ Use it as background information. If hitting a window mid-task would cost you re
   `usage.json`.
 - Notifications fire at most one per threshold crossing per window. A first
   install at 95% gets one notification, not three.
-- The app reads `usage.json` only if it is a small regular file, never a
-  symlink or anything oversized. The file and its directory are owner-only.
+- The app reads `usage.json` only if it is a small regular file: it opens
+  the file without following symlinks and checks the open file before
+  reading. The file and its directory are owner-only.
 - Connect changes one entry in `~/.claude/settings.json` and nothing else. It
   saves a timestamped backup next to the file first, re-parses its own edit
   and refuses to write if anything other than `statusLine` would differ,
-  refuses to touch a file that isn't valid JSON, and writes through symlinks
-  so dotfile managers (stow, chezmoi, yadm) keep working.
-- The app never sees your Claude login. It has no access to tokens, the
-  Keychain, or your conversations: only the percentages Claude Code passes
-  to its status line.
+  refuses to touch a file that isn't valid JSON or that changed while it was
+  working, and writes through symlinks so dotfile managers (stow, chezmoi,
+  yadm) keep working.
+- Backups are full copies of `settings.json`, so they contain whatever you
+  keep in that file. They are owner-only, and only the newest five are kept.
+- The app never asks for your Claude login and does not read or store
+  tokens, the Keychain, or your conversations. Claude Code passes session
+  details to every status line command; Tokenz keeps only the usage
+  percentages, their reset times and the model name.
 - Release builds use the hardened runtime and carry no debug entitlements.
-- The only program the app ever starts is your own previous status line
-  command, and only if you had one when you connected.
+- The only program the app ever starts is the status line command saved in
+  `~/Library/Application Support/Tokenz/chained-statusline-command`. Connect
+  writes your previous status line there if you had one, and removes the
+  file if you didn't.
 - The app currently runs **without** the macOS sandbox, because it has to
   edit `~/.claude/settings.json` and share an Application Support path with
   the `--statusline` process that Claude Code launches.
@@ -187,7 +194,7 @@ Use it as background information. If hitting a window mid-task would cost you re
 
 ## Uninstall
 
-1. Click the menu bar item, then **Disconnect from Claude Code**. This removes the `statusLine` entry from `~/.claude/settings.json`, or puts your previous status line back if you had one.
+1. Click the menu bar item, then **Disconnect from Claude Code**. This removes the `statusLine` entry from `~/.claude/settings.json`, or puts your previous status line back if you had one. Do this before deleting the app: otherwise Claude Code keeps trying to run a program that is no longer there.
 2. Quit Tokenz.
 3. Move `Tokenz.app` to the Trash.
 4. Optional: `rm -rf ~/Library/Application\ Support/Tokenz`, and delete the `settings.json.tokenz-backup-*` files in `~/.claude`.
