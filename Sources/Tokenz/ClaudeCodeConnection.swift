@@ -114,10 +114,13 @@ final class ClaudeCodeConnection: ObservableObject {
         refresh()
     }
 
-    /// True for a status line command that is some version of ClaudeMonitor.
+    /// True for a status line command that is some version of this app,
+    /// including the names it shipped under before it was called Tokenz.
     private nonisolated static func isOurs(_ command: String) -> Bool {
-        command.contains("claude-monitor-statusline.sh")
-            || (command.contains("/ClaudeMonitor.app/Contents/MacOS/ClaudeMonitor") && command.hasSuffix("--statusline"))
+        if command.contains("claude-monitor-statusline.sh") { return true }
+        guard command.hasSuffix("--statusline") else { return false }
+        return command.contains("/Tokenz.app/Contents/MacOS/Tokenz")
+            || command.contains("/ClaudeMonitor.app/Contents/MacOS/ClaudeMonitor")
     }
 
     // MARK: - Writing settings.json
@@ -136,7 +139,7 @@ final class ClaudeCodeConnection: ObservableObject {
             stamp.locale = Locale(identifier: "en_US_POSIX")
             stamp.dateFormat = "yyyyMMdd-HHmmss"
             let backup = settingsURL.deletingLastPathComponent()
-                .appendingPathComponent("settings.json.claudemonitor-backup-\(stamp.string(from: Date()))")
+                .appendingPathComponent("settings.json.tokenz-backup-\(stamp.string(from: Date()))")
             try? fm.removeItem(at: backup)
             try fm.copyItem(at: target, to: backup)
         }

@@ -2,18 +2,18 @@
 set -euo pipefail
 
 # make-dmg.sh
-# Builds a redistributable .dmg for ClaudeMonitor.
+# Builds a redistributable .dmg for Tokenz.
 #
 # Usage:
 #   ./Scripts/make-dmg.sh                      # auto-rebuilds via xcodebuild
 #   ./Scripts/make-dmg.sh /path/to/MyBuild.app # uses an existing .app
 #
-# Output: build/ClaudeMonitor-<version>.dmg
+# Output: build/Tokenz-<version>.dmg
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
-APP_NAME="ClaudeMonitor"
+APP_NAME="Tokenz"
 DERIVED="${REPO_ROOT}/build/xcode-derived"
 APP_DEFAULT="${DERIVED}/Build/Products/Release/${APP_NAME}.app"
 APP_PATH="${1:-${APP_DEFAULT}}"
@@ -57,16 +57,16 @@ ln -s /Applications "$STAGING/Applications"
 
 # README inside the DMG
 cat > "$STAGING/README.txt" <<EOF
-ClaudeMonitor ${VERSION}
+Tokenz ${VERSION}
 $(printf '=%.0s' $(seq 1 $((13 + ${#VERSION}))))
 
 A native macOS menu bar app that shows your Claude usage limits.
 
 INSTALL
 -------
-1. Drag ClaudeMonitor.app to the Applications shortcut on the right.
+1. Drag Tokenz.app to the Applications shortcut on the right.
 
-2. Open ClaudeMonitor from /Applications (see FIRST LAUNCH below).
+2. Open Tokenz from /Applications (see FIRST LAUNCH below).
 
 3. Click the new menu bar item, then "Connect to Claude Code".
    This adds a statusLine entry to ~/.claude/settings.json. A backup
@@ -84,11 +84,11 @@ app.
 
 To open it once and tell macOS to trust it from then on:
   - Open System Settings > Privacy & Security
-  - Scroll down to the message about ClaudeMonitor
+  - Scroll down to the message about Tokenz
   - Click "Open Anyway" and confirm
   (On macOS 14 you can instead right-click the app and choose "Open".)
 
-After that, ClaudeMonitor launches normally.
+After that, Tokenz launches normally.
 
 REQUIREMENTS
 ------------
@@ -99,16 +99,16 @@ REQUIREMENTS
 UNINSTALL
 ---------
   - Click the menu bar item, then "Disconnect from Claude Code".
-  - Quit ClaudeMonitor.
-  - Drag ClaudeMonitor.app from /Applications to the Trash.
-  - Optional: rm -rf ~/Library/Application\\ Support/ClaudeMonitor
+  - Quit Tokenz.
+  - Drag Tokenz.app from /Applications to the Trash.
+  - Optional: rm -rf ~/Library/Application\\ Support/Tokenz
 
 PRIVACY
 -------
 Everything stays on your machine. No network calls. No telemetry.
 No account sign-in: the app never sees your Claude login.
 
-Repo:    https://github.com/creativepulsenow/claude-usage-taskbar-macos
+Repo:    https://github.com/creativepulsenow/tokenz
 License: MIT
 EOF
 

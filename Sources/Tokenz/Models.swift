@@ -1,6 +1,6 @@
 import Foundation
 
-/// JSON structure written by the status line script to ~/Library/Application Support/ClaudeMonitor/usage.json
+/// JSON structure written by the status line script to ~/Library/Application Support/Tokenz/usage.json
 struct UsageFileData: Codable {
     let fiveHour: RateLimitWindow?
     let sevenDay: RateLimitWindow?

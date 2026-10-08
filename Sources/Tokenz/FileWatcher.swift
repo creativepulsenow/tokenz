@@ -1,6 +1,6 @@
 import Foundation
 
-/// Watches ~/Library/Application Support/ClaudeMonitor/usage.json using DispatchSource (FSEvents).
+/// Watches ~/Library/Application Support/Tokenz/usage.json using DispatchSource (FSEvents).
 /// Parses the file on change and calls the onChange callback with the decoded data.
 ///
 /// Reliability strategy: events are best-effort. The status line writes via atomic
@@ -15,7 +15,7 @@ final class FileWatcher {
     private var pollTimer: DispatchSourceTimer?
     private var lastModified: Date?
     private let onChange: (UsageFileData) -> Void
-    private let queue = DispatchQueue(label: "ClaudeMonitor.FileWatcher", qos: .utility)
+    private let queue = DispatchQueue(label: "Tokenz.FileWatcher", qos: .utility)
 
     init(path: String, onChange: @escaping (UsageFileData) -> Void) {
         self.filePath = path

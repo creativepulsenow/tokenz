@@ -5,19 +5,19 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>ClaudeMonitor</string>
+    <string>Tokenz</string>
     <key>CFBundleIdentifier</key>
-    <string>com.creativepulsenow.claudemonitor</string>
+    <string>com.creativepulsenow.tokenz</string>
     <key>CFBundleName</key>
-    <string>ClaudeMonitor</string>
+    <string>Tokenz</string>
     <key>CFBundleDisplayName</key>
-    <string>Claude Monitor</string>
+    <string>Tokenz</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.3.0</string>
+    <string>1.4.0</string>
     <key>CFBundleVersion</key>
-    <string>4</string>
+    <string>5</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>LSMinimumSystemVersion</key>

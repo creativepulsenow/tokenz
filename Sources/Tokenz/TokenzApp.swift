@@ -9,11 +9,11 @@ enum Main {
             StatusLineCommand.run()
             return
         }
-        ClaudeMonitorApp.main()
+        TokenzApp.main()
     }
 }
 
-struct ClaudeMonitorApp: App {
+struct TokenzApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {

@@ -17,6 +17,7 @@ DerivedData/
 # Build artifacts
 build/xcode-derived/
 build/*.app/
+build/Tokenz-*/
 build/ClaudeMonitor-*/
 build/dmg-staging/
 *.zip
@@ -29,9 +30,9 @@ Packages/
 Package.resolved
 
 # XcodeGen-generated project (regenerable from project.yml)
-# Keep ClaudeMonitor.xcodeproj committed for now since it ships ready-to-open
+# Keep Tokenz.xcodeproj committed for now since it ships ready-to-open
 # Uncomment if you prefer to regenerate locally:
-# ClaudeMonitor.xcodeproj/
+# Tokenz.xcodeproj/
 
 # Editor
 .vscode/

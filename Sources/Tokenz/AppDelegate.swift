@@ -51,7 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         let dir = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)
             .first!
-            .appendingPathComponent("ClaudeMonitor", isDirectory: true)
+            .appendingPathComponent("Tokenz", isDirectory: true)
         try? FileManager.default.createDirectory(
             at: dir, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         return dir.path

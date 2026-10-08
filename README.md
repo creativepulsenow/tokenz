@@ -1,13 +1,13 @@
-# ClaudeMonitor
+# Tokenz
 
-A native macOS menu bar app that shows your Claude usage limits at a glance.
+Usage limits for Claude Code in your menu bar. A native macOS app that shows where you stand at a glance.
 
 ![macOS](https://img.shields.io/badge/macOS-14.0%2B-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="ClaudeMonitor menu bar and popover" width="540">
+  <img src="docs/screenshot.png" alt="Tokenz menu bar and popover" width="540">
 </p>
 
 A tiny indicator in the menu bar — green under 60%, orange between 60–85%,
@@ -16,7 +16,7 @@ and 7-day weekly windows. Click for exact percentages, time until each
 window resets, and a Launch-at-Login toggle. Get a notification at 70%,
 85%, and 95% so you know before you hit the wall.
 
-No daemons. No network. No account sign-in. ClaudeMonitor reads the
+No daemons. No network. No account sign-in. Tokenz reads the
 rate-limit data Claude Code already hands to its status line command,
 writes it to a small local JSON file, and watches that file for changes.
 That's it.
@@ -25,7 +25,7 @@ That's it.
 
 If you've used Claude Code on Pro or Max, you know how this goes. You're deep in a coding session, the responses slow down or stop, and you discover you've burned the 5-hour window or your week. At that point the only options are wait it out or switch to API billing. Neither is what you want mid-task.
 
-Anthropic shows usage in the web console, but you have to go look. There's no signal on your machine while you work. ClaudeMonitor is that signal. Percentage in the menu bar, notifications at 70 / 85 / 95%, popover with reset times.
+Anthropic shows usage in the web console, but you have to go look. There's no signal on your machine while you work. Tokenz is that signal. Percentage in the menu bar, notifications at 70 / 85 / 95%, popover with reset times.
 
 ## Highlights
 
@@ -45,10 +45,10 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 
 ## Install (prebuilt)
 
-1. Download **`ClaudeMonitor-1.3.0.dmg`** from the [latest release](https://github.com/creativepulsenow/claude-usage-taskbar-macos/releases/latest).
-2. Open the DMG and drag `ClaudeMonitor.app` onto the Applications shortcut.
+1. Download **`Tokenz-1.4.0.dmg`** from the [latest release](https://github.com/creativepulsenow/tokenz/releases/latest).
+2. Open the DMG and drag `Tokenz.app` onto the Applications shortcut.
    *(Connecting to Claude Code, "Launch at Login" and notifications all need the app to live in `/Applications`.)*
-3. Launch `ClaudeMonitor.app` from `/Applications`. **First time only:** macOS will refuse to open it because the app is ad-hoc signed and not yet notarized. Open **System Settings → Privacy & Security**, scroll down to the message about ClaudeMonitor, and click **Open Anyway**. (On macOS 14 you can instead right-click the app → **Open**.) Every later launch is normal.
+3. Launch `Tokenz.app` from `/Applications`. **First time only:** macOS will refuse to open it because the app is ad-hoc signed and not yet notarized. Open **System Settings → Privacy & Security**, scroll down to the message about Tokenz, and click **Open Anyway**. (On macOS 14 you can instead right-click the app → **Open**.) Every later launch is normal.
 4. Click the menu bar item, then **Connect to Claude Code**.
    This adds a `statusLine` entry to `~/.claude/settings.json`. The app saves a backup of the file first, changes nothing else in it, refuses if the file isn't valid JSON, and writes through symlinks so dotfile managers keep working.
 5. Quit and relaunch Claude Code, then send any message so it reports the first batch of usage data.
@@ -57,16 +57,16 @@ You should see an asterisk and a percentage in your menu bar.
 
 The bundled `.app` is a universal binary (Apple Silicon + Intel).
 
-**Already have a status line?** Connect keeps it. ClaudeMonitor runs first, then hands the same input to your command and shows its output, so your status line looks the same as before.
+**Already have a status line?** Connect keeps it. Tokenz runs first, then hands the same input to your command and shows its output, so your status line looks the same as before.
 
-**Upgrading from 1.2 or earlier?** Your existing setup keeps working. The popover offers **Update Connection** to switch from the old `jq` script to the built-in one; afterward you can delete `~/.claude/claude-monitor-statusline.sh`.
+**Upgrading from ClaudeMonitor?** Tokenz is the same app under a new name (1.3 and earlier shipped as ClaudeMonitor). Install Tokenz, open it, and click **Update Connection**. Then delete `ClaudeMonitor.app`, and optionally `~/Library/Application Support/ClaudeMonitor` and `~/.claude/claude-monitor-statusline.sh`. Launch at Login and notifications need to be turned on again.
 
 **Prefer to edit the file yourself?** Add this to `~/.claude/settings.json`:
 
 ```json
 "statusLine": {
   "type": "command",
-  "command": "'/Applications/ClaudeMonitor.app/Contents/MacOS/ClaudeMonitor' --statusline"
+  "command": "'/Applications/Tokenz.app/Contents/MacOS/Tokenz' --statusline"
 }
 ```
 
@@ -75,27 +75,27 @@ The bundled `.app` is a universal binary (Apple Silicon + Intel).
 ```bash
 brew install xcodegen
 xcodegen generate
-open ClaudeMonitor.xcodeproj
+open Tokenz.xcodeproj
 ```
 
-Build the `ClaudeMonitor` scheme, then drag the resulting `.app` to `/Applications`.
+Build the `Tokenz` scheme, then drag the resulting `.app` to `/Applications`.
 
 To produce the same DMG that ships in releases:
 
 ```bash
 ./Scripts/make-dmg.sh
-# -> build/ClaudeMonitor-<version>.dmg
+# -> build/Tokenz-<version>.dmg
 ```
 
 ## How it works
 
 ```
-Claude Code ──(stdin JSON)──▶ ClaudeMonitor --statusline ──▶ ~/Library/Application Support/ClaudeMonitor/usage.json
+Claude Code ──(stdin JSON)──▶ Tokenz --statusline ──▶ ~/Library/Application Support/Tokenz/usage.json
                                                                         │
                                                        (DispatchSource FSEvents)
                                                                         │
                                                                         ▼
-                                                               ClaudeMonitor.app
+                                                               Tokenz.app
                                                             (menu bar + notifications)
 ```
 
@@ -104,11 +104,11 @@ Claude Code ──(stdin JSON)──▶ ClaudeMonitor --statusline ──▶ ~/L
 - The app watches that file with `DispatchSource.makeFileSystemObjectSource` and re-renders on every change. As a safety net it also checks the file's modification time every 10 seconds.
 - Alerts fire once per threshold per window; state persists in `UserDefaults` so restarts don't re-fire.
 
-**No network calls. No daemons. No polling of Anthropic.** The app makes zero API requests against Anthropic — it only reads what your local Claude tools have already pulled. ClaudeMonitor consumes **zero quota**.
+**No network calls. No daemons. No polling of Anthropic.** The app makes zero API requests against Anthropic — it only reads what your local Claude tools have already pulled. Tokenz consumes **zero quota**.
 
 ### Update cadence
 
-ClaudeMonitor isn't a poller — it's a passive observer. The cadence comes entirely from your local Claude tools running the status-line hook:
+Tokenz isn't a poller — it's a passive observer. The cadence comes entirely from your local Claude tools running the status-line hook:
 
 - **Active session (Claude Code or Cowork actively responding):** updates every assistant turn — typically every 5–30 seconds during back-and-forth, less often during long tool-heavy responses. File-write to UI latency is sub-second.
 - **Local Claude tool open but idle:** no updates.
@@ -132,9 +132,9 @@ The status-line hook fires **after** an assistant message completes. The web con
 
 Closing that 1-turn gap would require actively polling `api.anthropic.com`, which means user-supplied API keys, network calls in the privacy posture, and rate-limit-checks that themselves eat into your rate limits. Not worth it for the gap it closes. **1 turn behind is the floor.** When the pill matches the previous turn's value, the system is healthy.
 
-### What ClaudeMonitor sees
+### What Tokenz sees
 
-Rate limits live on your Anthropic account, but ClaudeMonitor only learns about them through local tools that fire the status-line hook. Coverage by surface:
+Rate limits live on your Anthropic account, but Tokenz only learns about them through local tools that fire the status-line hook. Coverage by surface:
 
 | Surface | Updates the menu bar? |
 |---|---|
@@ -143,15 +143,15 @@ Rate limits live on your Anthropic account, but ClaudeMonitor only learns about 
 | Claude.ai web chat | ❌ nothing local runs |
 | Claude mobile / iPad app | ❌ nothing local runs |
 
-The good news: rate limits are account-wide, so whatever you burn through web chat or mobile is *visible to ClaudeMonitor as soon as the next Claude Code or Cowork turn fires.* The hook reports the current account-wide percentages, so consumption from other surfaces catches up with at most one assistant-turn of delay. If you only ever use claude.ai web chat, ClaudeMonitor won't be useful — it has nothing to react to.
+The good news: rate limits are account-wide, so whatever you burn through web chat or mobile is *visible to Tokenz as soon as the next Claude Code or Cowork turn fires.* The hook reports the current account-wide percentages, so consumption from other surfaces catches up with at most one assistant-turn of delay. If you only ever use claude.ai web chat, Tokenz won't be useful — it has nothing to react to.
 
 ## Reliability & limits
 
-ClaudeMonitor is best-effort. A few caveats before you rely on it:
+Tokenz is best-effort. A few caveats before you rely on it:
 
 - **It only sees what your local Claude Code (or Cowork) sees.** If you only use claude.ai web or mobile, the status-line hook never fires, so the app has nothing to show.
 - **It's at least one assistant turn behind live account state.** Structural, not a bug — see [Update cadence](#update-cadence).
-- **Notifications can be missed.** Thresholds (70 / 85 / 95%) only fire when the app is running and a status-line update arrives that crosses them. Cross 85% via web chat while ClaudeMonitor is closed and you'll skip that alert — only the next unfired threshold counts.
+- **Notifications can be missed.** Thresholds (70 / 85 / 95%) only fire when the app is running and a status-line update arrives that crosses them. Cross 85% via web chat while Tokenz is closed and you'll skip that alert — only the next unfired threshold counts.
 - **The 95% alert is late by design.** By the time it fires you're nearly out for the window. If you want earlier warning, watch for the 70% one.
 - **The percentage gets fuzzier as it ages.** Past 90 seconds without fresh data, the menu bar adds a tilde — `~94%` instead of `94%` — to flag that the number is approximate. It stays on screen until the 5-hour window rolls over, then reads `~0%`. A tilde number doesn't include anything you used on claude.ai web, mobile or another machine since the last update. Run any prompt in Claude Code to get an exact reading.
 
@@ -188,9 +188,9 @@ Use it as background information. If hitting a window mid-task would cost you re
 ## Uninstall
 
 1. Click the menu bar item, then **Disconnect from Claude Code**. This removes the `statusLine` entry from `~/.claude/settings.json`, or puts your previous status line back if you had one.
-2. Quit ClaudeMonitor.
-3. Move `ClaudeMonitor.app` to the Trash.
-4. Optional: `rm -rf ~/Library/Application\ Support/ClaudeMonitor`, and delete the `settings.json.claudemonitor-backup-*` files in `~/.claude`.
+2. Quit Tokenz.
+3. Move `Tokenz.app` to the Trash.
+4. Optional: `rm -rf ~/Library/Application\ Support/Tokenz`, and delete the `settings.json.tokenz-backup-*` files in `~/.claude`.
 
 ## Privacy
 

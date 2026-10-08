@@ -25,7 +25,7 @@ final class LoginItemController: ObservableObject {
                 try SMAppService.mainApp.unregister()
             }
         } catch {
-            NSLog("ClaudeMonitor: Login item update failed: \(error.localizedDescription)")
+            NSLog("Tokenz: Login item update failed: \(error.localizedDescription)")
         }
         refresh()
     }

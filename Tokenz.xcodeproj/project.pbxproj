@@ -1,0 +1,366 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0333A78D40493E29C4DEAF6B /* AlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAC93AD756ABD7461D4773A6 /* AlertManager.swift */; };
+		1292A468043C5D33DACAB768 /* SettingsEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6D2D5E30AC79EAD6D46F501 /* SettingsEditor.swift */; };
+		2F401F2B15DA02C43BC54E1A /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A636E7850F60BEE06B1B30 /* FileWatcher.swift */; };
+		4733D066E0D5BAE1B0EE2C5D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF41E274493AEAF8B24D9157 /* Models.swift */; };
+		539EBAACF2C0113BE79430B0 /* StatusLineCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 382B31391A57DF8889E17545 /* StatusLineCommand.swift */; };
+		62EB599B5074D0FA03C6BDAF /* LoginItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1538AEE4A04E171D268D0C44 /* LoginItemController.swift */; };
+		77614EDD0BF23FF02BCCA3B0 /* UsagePopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC146D6C80CFAEA7C6D0C1BE /* UsagePopoverView.swift */; };
+		893858A28DDE2216CECC4389 /* UsageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6E146651A28C671D3F53CEB /* UsageStore.swift */; };
+		A21B2704AFA3D96009DFB7AC /* ClaudeCodeConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D504F52DA8E3F82EA6221E /* ClaudeCodeConnection.swift */; };
+		C1012F9CA4C46D57B35D4F19 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3C63F2021D2DB6143B9991 /* AppDelegate.swift */; };
+		C43C4F979F8289563F81889D /* TokenzApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223D0B9FF5F8F322C4EDB22B /* TokenzApp.swift */; };
+		E9DAE59080F6D26F7B235CED /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8C91899C40B4DC574C671307 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1538AEE4A04E171D268D0C44 /* LoginItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemController.swift; sourceTree = "<group>"; };
+		223D0B9FF5F8F322C4EDB22B /* TokenzApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenzApp.swift; sourceTree = "<group>"; };
+		382B31391A57DF8889E17545 /* StatusLineCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusLineCommand.swift; sourceTree = "<group>"; };
+		56D504F52DA8E3F82EA6221E /* ClaudeCodeConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeConnection.swift; sourceTree = "<group>"; };
+		5928EA4EC1051E7FED68676C /* Tokenz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tokenz.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A3C63F2021D2DB6143B9991 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		8C91899C40B4DC574C671307 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AAC93AD756ABD7461D4773A6 /* AlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertManager.swift; sourceTree = "<group>"; };
+		C4A636E7850F60BEE06B1B30 /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
+		CC146D6C80CFAEA7C6D0C1BE /* UsagePopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsagePopoverView.swift; sourceTree = "<group>"; };
+		DF41E274493AEAF8B24D9157 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		E6D2D5E30AC79EAD6D46F501 /* SettingsEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsEditor.swift; sourceTree = "<group>"; };
+		E6E146651A28C671D3F53CEB /* UsageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageStore.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0652A200AE5A298D3B9EAF44 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8C91899C40B4DC574C671307 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		180861342DB32A96E849368C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5928EA4EC1051E7FED68676C /* Tokenz.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		26DE898B50422CB3C41C6D1C /* Tokenz */ = {
+			isa = PBXGroup;
+			children = (
+				AAC93AD756ABD7461D4773A6 /* AlertManager.swift */,
+				8A3C63F2021D2DB6143B9991 /* AppDelegate.swift */,
+				56D504F52DA8E3F82EA6221E /* ClaudeCodeConnection.swift */,
+				C4A636E7850F60BEE06B1B30 /* FileWatcher.swift */,
+				1538AEE4A04E171D268D0C44 /* LoginItemController.swift */,
+				DF41E274493AEAF8B24D9157 /* Models.swift */,
+				E6D2D5E30AC79EAD6D46F501 /* SettingsEditor.swift */,
+				382B31391A57DF8889E17545 /* StatusLineCommand.swift */,
+				223D0B9FF5F8F322C4EDB22B /* TokenzApp.swift */,
+				CC146D6C80CFAEA7C6D0C1BE /* UsagePopoverView.swift */,
+				E6E146651A28C671D3F53CEB /* UsageStore.swift */,
+			);
+			path = Tokenz;
+			sourceTree = "<group>";
+		};
+		5169CAEED4C966027AFB43FF /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				26DE898B50422CB3C41C6D1C /* Tokenz */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		62714D2EBB0DA802D3D602E7 = {
+			isa = PBXGroup;
+			children = (
+				0652A200AE5A298D3B9EAF44 /* Resources */,
+				5169CAEED4C966027AFB43FF /* Sources */,
+				180861342DB32A96E849368C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CB6DF47262A7B85E5D41B26D /* Tokenz */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E25783C542207A4C1C013256 /* Build configuration list for PBXNativeTarget "Tokenz" */;
+			buildPhases = (
+				288B3BD73CD1FE096F7A1D41 /* Sources */,
+				DEF8E67CD615F7CA94DFDC6F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Tokenz;
+			packageProductDependencies = (
+			);
+			productName = Tokenz;
+			productReference = 5928EA4EC1051E7FED68676C /* Tokenz.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		670D2875B35873BB66F98C94 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					CB6DF47262A7B85E5D41B26D = {
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = 697BDEBF9EA0834F8F3F4FE3 /* Build configuration list for PBXProject "Tokenz" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 62714D2EBB0DA802D3D602E7;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 180861342DB32A96E849368C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CB6DF47262A7B85E5D41B26D /* Tokenz */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		DEF8E67CD615F7CA94DFDC6F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E9DAE59080F6D26F7B235CED /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		288B3BD73CD1FE096F7A1D41 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0333A78D40493E29C4DEAF6B /* AlertManager.swift in Sources */,
+				C1012F9CA4C46D57B35D4F19 /* AppDelegate.swift in Sources */,
+				A21B2704AFA3D96009DFB7AC /* ClaudeCodeConnection.swift in Sources */,
+				2F401F2B15DA02C43BC54E1A /* FileWatcher.swift in Sources */,
+				62EB599B5074D0FA03C6BDAF /* LoginItemController.swift in Sources */,
+				4733D066E0D5BAE1B0EE2C5D /* Models.swift in Sources */,
+				1292A468043C5D33DACAB768 /* SettingsEditor.swift in Sources */,
+				539EBAACF2C0113BE79430B0 /* StatusLineCommand.swift in Sources */,
+				C43C4F979F8289563F81889D /* TokenzApp.swift in Sources */,
+				77614EDD0BF23FF02BCCA3B0 /* UsagePopoverView.swift in Sources */,
+				893858A28DDE2216CECC4389 /* UsageStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		9D280D86FB986A05E247D4AD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = Resources/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.creativepulsenow.tokenz;
+				PRODUCT_NAME = Tokenz;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		A4FEA141EA4BE801242551B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		DCC4DD96CF47CB2CC3F337F4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = Resources/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.creativepulsenow.tokenz;
+				PRODUCT_NAME = Tokenz;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		E74A3AAA7B3B479C49BBBB61 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		697BDEBF9EA0834F8F3F4FE3 /* Build configuration list for PBXProject "Tokenz" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DCC4DD96CF47CB2CC3F337F4 /* Debug */,
+				9D280D86FB986A05E247D4AD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E25783C542207A4C1C013256 /* Build configuration list for PBXNativeTarget "Tokenz" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E74A3AAA7B3B479C49BBBB61 /* Debug */,
+				A4FEA141EA4BE801242551B9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 670D2875B35873BB66F98C94 /* Project object */;
+}

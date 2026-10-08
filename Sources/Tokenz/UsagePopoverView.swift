@@ -59,7 +59,7 @@ struct UsagePopoverView: View {
                     Text("Rate limits not available")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                    Text("ClaudeMonitor needs a Claude.ai Pro or Max plan. The status line is connected, but rate-limit data isn't being reported.")
+                    Text("Tokenz needs a Claude.ai Pro or Max plan. The status line is connected, but rate-limit data isn't being reported.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -175,7 +175,7 @@ struct ConnectionPanel: View {
         case .needsUpdate: return "Connection needs an update"
         case .otherStatusLine: return "Claude Code already has a status line"
         case .settingsUnreadable: return "Can't read Claude Code's settings"
-        case .appNotInstalled: return "Move ClaudeMonitor to Applications"
+        case .appNotInstalled: return "Move Tokenz to Applications"
         }
     }
 
@@ -185,13 +185,13 @@ struct ConnectionPanel: View {
         case .notConnected:
             return "Connect adds a status line entry to ~/.claude/settings.json so Claude Code can report your usage. A backup of the file is saved first."
         case .needsUpdate:
-            return "Claude Code is set up with an older ClaudeMonitor script or a copy of the app that has moved. Update points it at this app."
+            return "Claude Code is set up with an earlier version of this app (it used to be called ClaudeMonitor) or a copy that has moved. Update points it at this app."
         case .otherStatusLine:
-            return "Connect keeps your status line showing and adds ClaudeMonitor alongside it. A backup of settings.json is saved first."
+            return "Connect keeps your status line showing and adds Tokenz alongside it. A backup of settings.json is saved first."
         case .settingsUnreadable:
-            return "~/.claude/settings.json isn't valid JSON, so ClaudeMonitor won't change it. Fix the file, then reopen this window."
+            return "~/.claude/settings.json isn't valid JSON, so Tokenz won't change it. Fix the file, then reopen this window."
         case .appNotInstalled:
-            return "Drag ClaudeMonitor into your Applications folder and open it from there to connect it to Claude Code."
+            return "Drag Tokenz into your Applications folder and open it from there to connect it to Claude Code."
         }
     }
 

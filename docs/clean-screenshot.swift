@@ -25,7 +25,7 @@ let SH = cgImg.height   // 604
 
 struct VRect { var x, y, w, h: Int }
 
-// The "Claude Monitor" menu-bar pill (white circle + "30%")
+// The "Tokenz" menu-bar pill (white circle + "30%")
 let pillRect = VRect(x: 12, y: 6, w: 130, h: 38)
 
 // The popover. Trim aggressively past the translucent edge (where terminal
