@@ -3,6 +3,7 @@ import SwiftUI
 struct UsagePopoverView: View {
     @ObservedObject var store: UsageStore
     @ObservedObject var loginItem: LoginItemController
+    @ObservedObject var connection: ClaudeCodeConnection
     var onRequestNotificationPermission: (() -> Void)?
 
     @State private var hasRequestedPermission = false
@@ -42,6 +43,10 @@ struct UsagePopoverView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.orange.opacity(0.12))
                 .cornerRadius(6)
+            }
+
+            if connection.state != .connected || connection.message != nil {
+                ConnectionPanel(connection: connection)
             }
 
             Divider()
@@ -95,8 +100,16 @@ struct UsagePopoverView: View {
                     .foregroundColor(.secondary)
             }
 
-            // Quit
+            // Disconnect + Quit
             HStack {
+                if connection.state == .connected || connection.state == .needsUpdate {
+                    Button("Disconnect from Claude Code") {
+                        connection.disconnect()
+                    }
+                    .buttonStyle(.plain)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                }
                 Spacer()
                 Button("Quit") {
                     NSApplication.shared.terminate(nil)
@@ -110,10 +123,83 @@ struct UsagePopoverView: View {
         .frame(minWidth: 280)
         .onAppear {
             loginItem.refresh()
+            connection.refresh()
             if !hasRequestedPermission {
                 hasRequestedPermission = true
                 onRequestNotificationPermission?()
             }
+        }
+    }
+}
+
+// MARK: - Connection Panel
+
+/// Setup prompt shown until Claude Code's status line points at this app, plus
+/// the result of the last Connect / Disconnect.
+struct ConnectionPanel: View {
+    @ObservedObject var connection: ClaudeCodeConnection
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let title = title {
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+            }
+            if let detail = detail {
+                Text(detail)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if let button = buttonTitle {
+                Button(button) { connection.connect() }
+                    .controlSize(.small)
+            }
+            if let message = connection.message {
+                Text(message)
+                    .font(.caption2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.accentColor.opacity(0.12))
+        .cornerRadius(6)
+    }
+
+    private var title: String? {
+        switch connection.state {
+        case .connected: return nil
+        case .notConnected: return "Not connected to Claude Code"
+        case .needsUpdate: return "Connection needs an update"
+        case .otherStatusLine: return "Claude Code already has a status line"
+        case .settingsUnreadable: return "Can't read Claude Code's settings"
+        case .appNotInstalled: return "Move ClaudeMonitor to Applications"
+        }
+    }
+
+    private var detail: String? {
+        switch connection.state {
+        case .connected: return nil
+        case .notConnected:
+            return "Connect adds a status line entry to ~/.claude/settings.json so Claude Code can report your usage. A backup of the file is saved first."
+        case .needsUpdate:
+            return "Claude Code is set up with an older ClaudeMonitor script or a copy of the app that has moved. Update points it at this app."
+        case .otherStatusLine:
+            return "Connect keeps your status line showing and adds ClaudeMonitor alongside it. A backup of settings.json is saved first."
+        case .settingsUnreadable:
+            return "~/.claude/settings.json isn't valid JSON, so ClaudeMonitor won't change it. Fix the file, then reopen this window."
+        case .appNotInstalled:
+            return "Drag ClaudeMonitor into your Applications folder and open it from there to connect it to Claude Code."
+        }
+    }
+
+    private var buttonTitle: String? {
+        switch connection.state {
+        case .notConnected, .otherStatusLine: return "Connect to Claude Code"
+        case .needsUpdate: return "Update Connection"
+        case .connected, .settingsUnreadable, .appNotInstalled: return nil
         }
     }
 }

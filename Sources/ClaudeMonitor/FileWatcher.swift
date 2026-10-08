@@ -98,7 +98,18 @@ final class FileWatcher {
         readFile()
     }
 
+    /// usage.json is a couple hundred bytes. Refuse anything that couldn't be it.
+    private static let maxFileBytes = 65_536
+
     private func readFile() {
+        // Any process running as the user can write here. Only read a small
+        // regular file: not a symlink, a device, or something huge.
+        // (`attributesOfItem` doesn't follow symlinks.)
+        guard let info = try? FileManager.default.attributesOfItem(atPath: filePath),
+              info[.type] as? FileAttributeType == .typeRegular,
+              let size = info[.size] as? Int, size <= Self.maxFileBytes else {
+            return
+        }
         guard let data = FileManager.default.contents(atPath: filePath),
               !data.isEmpty,
               let parsed = try? JSONDecoder().decode(UsageFileData.self, from: data) else {

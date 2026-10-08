@@ -55,13 +55,6 @@ cp -R "$APP_PATH" "$STAGING/"
 # Drag-to-install affordance
 ln -s /Applications "$STAGING/Applications"
 
-# Bundled install script for the Claude Code status line bridge
-cp Scripts/install.sh "$STAGING/install.sh"
-chmod +x "$STAGING/install.sh"
-# Status line script too, since install.sh expects it as a sibling
-cp Scripts/claude-monitor-statusline.sh "$STAGING/claude-monitor-statusline.sh"
-chmod +x "$STAGING/claude-monitor-statusline.sh"
-
 # README inside the DMG
 cat > "$STAGING/README.txt" <<EOF
 ClaudeMonitor ${VERSION}
@@ -72,30 +65,28 @@ A native macOS menu bar app that shows your Claude usage limits.
 INSTALL
 -------
 1. Drag ClaudeMonitor.app to the Applications shortcut on the right.
-   (SMAppService and notification permissions both require /Applications.)
 
-2. Open Terminal in this DMG window and run:
-       ./install.sh
-   This wires up the Claude Code status line bridge (non-destructive
-   merge into ~/.claude/settings.json).
+2. Open ClaudeMonitor from /Applications (see FIRST LAUNCH below).
 
-3. Quit and relaunch Claude Code (Cmd+Q, then reopen).
+3. Click the new menu bar item, then "Connect to Claude Code".
+   This adds a statusLine entry to ~/.claude/settings.json. A backup
+   of the file is saved first, and an existing status line of your
+   own keeps showing.
 
-4. Send any message in Claude Code so it pipes the first batch of
-   usage data to ClaudeMonitor.
-
-5. Launch ClaudeMonitor.app from /Applications.
+4. Quit and relaunch Claude Code (Cmd+Q, then reopen), then send any
+   message so it reports the first batch of usage data.
 
 FIRST LAUNCH (Gatekeeper)
 -------------------------
 The app is ad-hoc signed (no paid Apple Developer ID), so the first
-time you open it, macOS will say "ClaudeMonitor cannot be opened
-because the developer cannot be verified."
+time you open it, macOS will refuse and say it could not verify the
+app.
 
 To open it once and tell macOS to trust it from then on:
-  - Right-click (or Control-click) ClaudeMonitor.app in /Applications
-  - Choose "Open"
-  - Click "Open" in the dialog that appears
+  - Open System Settings > Privacy & Security
+  - Scroll down to the message about ClaudeMonitor
+  - Click "Open Anyway" and confirm
+  (On macOS 14 you can instead right-click the app and choose "Open".)
 
 After that, ClaudeMonitor launches normally.
 
@@ -104,21 +95,18 @@ REQUIREMENTS
   - macOS 14.0 (Sonoma) or later
   - Claude Code installed
   - Claude.ai Pro or Max plan (rate-limit data only appears on these tiers)
-  - jq (install with: brew install jq)
 
 UNINSTALL
 ---------
+  - Click the menu bar item, then "Disconnect from Claude Code".
   - Quit ClaudeMonitor.
   - Drag ClaudeMonitor.app from /Applications to the Trash.
-  - Edit ~/.claude/settings.json to remove the "statusLine" entry
-    (or restore your previous one).
   - Optional: rm -rf ~/Library/Application\\ Support/ClaudeMonitor
 
 PRIVACY
 -------
 Everything stays on your machine. No network calls. No telemetry.
-Inputs are sanitized at the boundary so a misbehaving cohabitant can't
-crash or spoof the UI.
+No account sign-in: the app never sees your Claude login.
 
 Repo:    https://github.com/creativepulsenow/claude-usage-taskbar-macos
 License: MIT

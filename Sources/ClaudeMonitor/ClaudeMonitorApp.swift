@@ -1,6 +1,18 @@
 import SwiftUI
 
+/// Entry point. The same binary is both the menu bar app and, with
+/// `--statusline`, the command Claude Code runs to report usage.
 @main
+enum Main {
+    static func main() {
+        if CommandLine.arguments.contains("--statusline") {
+            StatusLineCommand.run()
+            return
+        }
+        ClaudeMonitorApp.main()
+    }
+}
+
 struct ClaudeMonitorApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
@@ -9,6 +21,7 @@ struct ClaudeMonitorApp: App {
             UsagePopoverView(
                 store: appDelegate.store,
                 loginItem: appDelegate.loginItem,
+                connection: appDelegate.connection,
                 onRequestNotificationPermission: { [weak appDelegate] in
                     appDelegate?.alertManager.requestPermissionIfNeeded()
                 }
