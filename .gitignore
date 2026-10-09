@@ -42,3 +42,6 @@ CLAUDE.local.md
 
 # Screenshot working files (raw screenshots may contain other apps' UI)
 docs/_*.png
+
+# Claude Security scan reports (local only)
+CLAUDE-SECURITY-*

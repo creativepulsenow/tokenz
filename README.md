@@ -137,6 +137,7 @@ Rate limits live on your Anthropic account, but Tokenz only learns about them wh
 | Where you use Claude | Updates the menu bar? |
 |---|---|
 | Claude Code (terminal or IDE) | ✅ every assistant turn |
+| Claude Code background work (subagents, workflows) | ❌ until your next turn in the main session |
 | Claude.ai web chat | ❌ nothing local runs |
 | Claude mobile app | ❌ nothing local runs |
 
@@ -150,6 +151,7 @@ Tokenz is best-effort. A few caveats before you rely on it:
 - **It's at least one assistant turn behind live account state.** See [Update cadence](#update-cadence).
 - **Notifications can be missed.** Thresholds only fire while the app is running and an update arrives that crosses them. Cross 85% on the web while Tokenz is closed and that alert is skipped.
 - **The 95% alert is late by design.** By the time it fires you're nearly out for the window. If you want earlier warning, watch for the 70% one.
+- **Background work is a blind spot.** Subagents and workflows that Claude Code runs in the background don't run the status line. A long one can use up a whole 5-hour window while the menu bar still shows the number from your last turn. It catches up with the next reply in the main session.
 - **A number with a tilde is a last-known value.** It doesn't include anything used on the web, mobile or another machine since the last update.
 - **Per-model limits aren't shown.** Some models have their own weekly limit. Claude Code only passes the 5-hour and the general weekly window to the status line today, so check `/usage` in Claude Code for the others. If Claude Code starts passing them, Tokenz shows them as extra rows automatically.
 
