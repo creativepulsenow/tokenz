@@ -2,6 +2,12 @@
 
 Each release's section below is also its release notes.
 
+## 1.5.4
+
+- **Fixes from a security review of the changes since 1.4.3.** Nothing serious was found. The rows for extra limits (shown only if Claude Code ever reports any) are stricter about their names, can't go backward or linger without a reset time, and can't imitate the two built-in rows.
+- **A malformed extra row can no longer blank the display.**
+- **Release pipeline tightened:** the job that signs and publishes no longer runs any project code, a release tag must be on `main`, and the check that shipped builds carry no entitlements is now complete.
+
 ## 1.5.3
 
 - **No more "Data may be out of date" warning.** It appeared 90 seconds after the last Claude Code reply, which is most of the time you glance at the app, for a number that is almost always still right. The menu bar still marks an older number with a tilde, and the popover still says when it was last updated.

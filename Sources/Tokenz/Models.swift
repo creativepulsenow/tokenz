@@ -17,6 +17,27 @@ struct UsageFileData: Codable {
         case updatedAt = "updated_at"
         case extra
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        fiveHour = try container.decodeIfPresent(RateLimitWindow.self, forKey: .fiveHour)
+        sevenDay = try container.decodeIfPresent(RateLimitWindow.self, forKey: .sevenDay)
+        model = try container.decodeIfPresent(String.self, forKey: .model)
+        updatedAt = try container.decodeIfPresent(Double.self, forKey: .updatedAt)
+        // The extra rows are optional decoration: a malformed list, or one
+        // malformed entry in it, must not make the app ignore the two limits
+        // that matter.
+        extra = (try? container.decodeIfPresent([Lenient<NamedRateLimitWindow>].self, forKey: .extra))?
+            .compactMap { $0.value }
+    }
+}
+
+/// Decodes to nil instead of failing when the value has the wrong shape.
+struct Lenient<Value: Decodable>: Decodable {
+    let value: Value?
+    init(from decoder: Decoder) throws {
+        value = try? decoder.singleValueContainer().decode(Value.self)
+    }
 }
 
 /// A limit beyond the two fixed ones, with the name to show for it.

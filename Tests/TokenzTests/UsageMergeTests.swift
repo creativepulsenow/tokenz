@@ -134,6 +134,36 @@ final class UsageMergeTests: XCTestCase {
         XCTAssertEqual(outcome.current.extra.first?.window.percent, 9)
     }
 
+    func testUnknownRunCannotTakeAnExtraLimitBackward() {
+        var stored = reading(40)
+        stored.extra = [.init(name: "Fable", window: Window(percent: 80, resetsAt: week))]
+        var incoming = reading(41)
+        incoming.extra = [.init(name: "Fable", window: Window(percent: 3, resetsAt: week)),
+                          .init(name: "Opus (weekly)", window: Window(percent: 10, resetsAt: week))]
+        let extra = merge(stored, incoming, .unknown).current.extra
+        XCTAssertEqual(extra.first { $0.name == "Fable" }?.window.percent, 80)
+        // A limit it has no history for is still accepted.
+        XCTAssertEqual(extra.first { $0.name == "Opus (weekly)" }?.window.percent, 10)
+    }
+
+    func testExtraLimitWithoutAResetTimeIsNeverStored() {
+        var incoming = reading(40)
+        incoming.extra = [.init(name: "Ghost", window: Window(percent: 99, resetsAt: nil))]
+        XCTAssertTrue(merge(nil, incoming, .fresh).current.extra.isEmpty)
+    }
+
+    func testExtraLimitsAreCappedAndOnePerName() {
+        var incoming = reading(40)
+        incoming.extra = (0..<20).map { .init(name: "Limit \($0)", window: Window(percent: 1, resetsAt: week)) }
+            + [.init(name: "Limit 0", window: Window(percent: 77, resetsAt: week))]
+        var stored = reading(40)
+        stored.extra = (20..<30).map { .init(name: "Limit \($0)", window: Window(percent: 1, resetsAt: week)) }
+        let extra = merge(stored, incoming, .fresh).current.extra
+        XCTAssertEqual(extra.count, UsageMerge.maxExtraWindows)
+        XCTAssertEqual(Set(extra.map(\.name)).count, extra.count)
+        XCTAssertEqual(extra.first?.window.percent, 1)   // the first "Limit 0" wins
+    }
+
     func testModelFallsBackToStored() {
         var incoming = reading(60)
         incoming.model = nil

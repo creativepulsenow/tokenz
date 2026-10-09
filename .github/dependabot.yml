@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # Keep the pinned GitHub Actions current. The project has no other
+  # dependencies.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

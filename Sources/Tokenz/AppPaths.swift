@@ -105,8 +105,10 @@ enum AppPaths {
             }
         }
         // 1.5.0 and 1.5.1 kept per-model totals here. Nothing reads them now.
+        // `unlink` removes a file or a link and nothing else: never a folder,
+        // and never whatever a link points to.
         for leftover in ["models.json", "models.json.lock"] {
-            try? fm.removeItem(atPath: (dataDirectory() as NSString).appendingPathComponent(leftover))
+            unlink((dataDirectory() as NSString).appendingPathComponent(leftover))
         }
         let hour: TimeInterval = 3600
         let isTemp: (String) -> Bool = { $0.contains(temporarySuffix) }

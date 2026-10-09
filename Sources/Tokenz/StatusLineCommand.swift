@@ -33,8 +33,7 @@ enum StatusLineCommand {
         var statusText = "..."
         if let session = (try? JSONSerialization.jsonObject(with: input)) as? [String: Any] {
             let limits = session["rate_limits"] as? [String: Any]
-            let model = ((session["model"] as? [String: Any])?["display_name"] as? String)
-                .map { String(String.UnicodeScalarView($0.unicodeScalars.prefix(maxModelScalars))) }
+            let model = ((session["model"] as? [String: Any])?["display_name"] as? String).map(cappedModel)
             let incoming = UsageMerge.Reading(
                 fiveHour: window(limits?["five_hour"]),
                 sevenDay: window(limits?["seven_day"]),
@@ -68,6 +67,10 @@ enum StatusLineCommand {
         print(statusText)
     }
 
+    private static func cappedModel(_ name: String) -> String {
+        String(String.UnicodeScalarView(name.unicodeScalars.prefix(maxModelScalars)))
+    }
+
     /// All of stdin, or nil if it is larger than any session JSON could be.
     private static func readInput() -> Data? {
         var input = Data()
@@ -98,8 +101,6 @@ enum StatusLineCommand {
     /// The limits Claude Code never passes to every plan, and so has no fixed
     /// row in the app: handled by `extraWindows`.
     private static let fixedLimitKeys: Set<String> = ["five_hour", "seven_day", "spend_limit", "model_scoped"]
-    private static let maxExtraWindows = 8
-    private static let maxLimitNameScalars = 40
 
     /// Any other limit in `rate_limits` that looks like a window. Today
     /// Claude Code sends none; if it starts to (per-model weekly limits, for
@@ -107,36 +108,31 @@ enum StatusLineCommand {
     private static func extraWindows(_ limits: [String: Any]?) -> [UsageMerge.NamedWindow] {
         guard let limits = limits else { return [] }
         var found: [UsageMerge.NamedWindow] = []
+        // Limits scoped to a model come first: they carry Claude Code's own
+        // labels, and must not be crowded out by keys we merely don't know.
+        for entry in (limits["model_scoped"] as? [Any]) ?? [] {
+            if let entry = entry as? [String: Any], let w = window(entry),
+               let name = LimitName.clean(entry["display_name"] as? String) {
+                found.append(UsageMerge.NamedWindow(name: name, window: w))
+            }
+        }
         for key in limits.keys.sorted() where !fixedLimitKeys.contains(key) {
             if let w = window(limits[key]), let name = limitName(forKey: key) {
                 found.append(UsageMerge.NamedWindow(name: name, window: w))
             }
         }
-        // Limits scoped to a model arrive as a list with their own labels.
-        for entry in (limits["model_scoped"] as? [Any]) ?? [] {
-            if let entry = entry as? [String: Any], let w = window(entry),
-               let name = cleanLimitName(entry["display_name"] as? String) {
-                found.append(UsageMerge.NamedWindow(name: name, window: w))
-            }
-        }
-        return Array(found.prefix(maxExtraWindows))
+        return Array(found.prefix(UsageMerge.maxExtraWindows))
     }
 
     /// `seven_day_opus` becomes "Opus (weekly)", `five_hour_x` "X (5hr)".
+    /// The whole name, suffix included, fits the length cap, so it reads back
+    /// from usage.json unchanged and matches itself on the next run.
     private static func limitName(forKey key: String) -> String? {
         for (prefix, suffix) in [("seven_day_", " (weekly)"), ("five_hour_", " (5hr)")] where key.hasPrefix(prefix) {
-            return cleanLimitName(key.dropFirst(prefix.count).replacingOccurrences(of: "_", with: " ").capitalized)
-                .map { $0 + suffix }
+            let base = key.dropFirst(prefix.count).replacingOccurrences(of: "_", with: " ").capitalized
+            return LimitName.clean(base, maxScalars: LimitName.maxScalars - suffix.count).map { $0 + suffix }
         }
-        return cleanLimitName(key.replacingOccurrences(of: "_", with: " ").capitalized)
-    }
-
-    private static func cleanLimitName(_ name: String?) -> String? {
-        guard let name = name else { return nil }
-        let scalars = name.unicodeScalars.prefix(maxLimitNameScalars)
-            .filter { !CharacterSet.controlCharacters.contains($0) }
-        let cleaned = String(String.UnicodeScalarView(scalars)).trimmingCharacters(in: .whitespaces)
-        return cleaned.isEmpty ? nil : cleaned
+        return LimitName.clean(key.replacingOccurrences(of: "_", with: " ").capitalized)
     }
 
     private static func storedReading() -> UsageMerge.Reading? {
@@ -144,14 +140,14 @@ enum StatusLineCommand {
               let stored = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return nil }
         let extra = ((stored["extra"] as? [Any]) ?? []).compactMap { entry -> UsageMerge.NamedWindow? in
             guard let entry = entry as? [String: Any], let w = window(entry),
-                  let name = cleanLimitName(entry["name"] as? String) else { return nil }
+                  let name = LimitName.clean(entry["name"] as? String) else { return nil }
             return UsageMerge.NamedWindow(name: name, window: w)
         }
         return UsageMerge.Reading(
             fiveHour: window(stored["five_hour"]),
             sevenDay: window(stored["seven_day"]),
-            model: stored["model"] as? String,
-            extra: Array(extra.prefix(maxExtraWindows)))
+            model: (stored["model"] as? String).map(cappedModel),
+            extra: extra)
     }
 
     private static func write(_ reading: UsageMerge.Reading, updatedAt: Double) {

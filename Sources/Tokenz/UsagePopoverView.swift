@@ -65,14 +65,14 @@ struct UsagePopoverView: View {
             } else {
                 // 5-hour session
                 UsageRow(
-                    label: "Current Session (5hr)",
+                    label: LimitName.fiveHour,
                     percent: store.fiveHourDisplayPercent,
                     resetsAt: store.fiveHourDisplayResetsAt
                 )
 
                 // 7-day weekly
                 UsageRow(
-                    label: "Weekly (7 day)",
+                    label: LimitName.weekly,
                     percent: store.sevenDayDisplayPercent,
                     resetsAt: store.sevenDayDisplayResetsAt
                 )

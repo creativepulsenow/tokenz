@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		013A67F3A7C33A0C50D12E3B /* LimitNameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 712DA6B2E0513FADE2430170 /* LimitNameTests.swift */; };
 		0333A78D40493E29C4DEAF6B /* AlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAC93AD756ABD7461D4773A6 /* AlertManager.swift */; };
 		0E8C7EEB89EEE28723EDBE05 /* AppPaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B000639E967248ACF71F7D4 /* AppPaths.swift */; };
 		1292A468043C5D33DACAB768 /* SettingsEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6D2D5E30AC79EAD6D46F501 /* SettingsEditor.swift */; };
@@ -46,6 +47,7 @@
 		5928EA4EC1051E7FED68676C /* Tokenz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tokenz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6B000639E967248ACF71F7D4 /* AppPaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPaths.swift; sourceTree = "<group>"; };
 		7099A57CD0CB3A91B5CF61BC /* AlertRulesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertRulesTests.swift; sourceTree = "<group>"; };
+		712DA6B2E0513FADE2430170 /* LimitNameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitNameTests.swift; sourceTree = "<group>"; };
 		86EA805842BE51C8D45A0494 /* SettingsEditorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsEditorTests.swift; sourceTree = "<group>"; };
 		89EE4C893545F3D84D5C64D7 /* AlertRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertRules.swift; sourceTree = "<group>"; };
 		8A3C63F2021D2DB6143B9991 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 			children = (
 				7099A57CD0CB3A91B5CF61BC /* AlertRulesTests.swift */,
 				B9A09F176AFA3C820BF77B9A /* ConnectionCommandTests.swift */,
+				712DA6B2E0513FADE2430170 /* LimitNameTests.swift */,
 				86EA805842BE51C8D45A0494 /* SettingsEditorTests.swift */,
 				9A87DE5E6068F3667809A496 /* UsageFormatTests.swift */,
 				49E544006FEDDCD7584635B6 /* UsageMergeTests.swift */,
@@ -258,6 +261,7 @@
 				0E8C7EEB89EEE28723EDBE05 /* AppPaths.swift in Sources */,
 				8C7FD94720786AAF1B3B2C31 /* ClaudeCodeConnection.swift in Sources */,
 				4E69CBFD31D8FA3A809D0C7F /* ConnectionCommandTests.swift in Sources */,
+				013A67F3A7C33A0C50D12E3B /* LimitNameTests.swift in Sources */,
 				3B75D903149A9FBF0BDCCD18 /* SettingsEditor.swift in Sources */,
 				223E715D259BCF4AB1643AB3 /* SettingsEditorTests.swift in Sources */,
 				A94B8AC5045A9180ECEA565E /* UsageFormat.swift in Sources */,

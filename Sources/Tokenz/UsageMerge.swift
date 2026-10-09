@@ -44,6 +44,9 @@ enum UsageMerge {
     static let fiveHourHorizon: TimeInterval = 24 * 3600
     static let sevenDayHorizon: TimeInterval = 8 * 24 * 3600
 
+    /// Most extra limits kept at once.
+    static let maxExtraWindows = 8
+
     /// Two reset times this close describe the same window.
     static let sameWindowTolerance: TimeInterval = 60
 
@@ -67,12 +70,16 @@ enum UsageMerge {
         let storedSeven = live(stored?.sevenDay, horizon: sevenDayHorizon, requireReset: true)
         let newFive = live(incoming.fiveHour, horizon: fiveHourHorizon, requireReset: false)
         let newSeven = live(incoming.sevenDay, horizon: sevenDayHorizon, requireReset: false)
-        let storedExtra = (stored?.extra ?? []).filter {
-            live($0.window, horizon: sevenDayHorizon, requireReset: true) != nil
+        // Extra limits must carry a reset time: without one there would be
+        // no telling when to stop showing them. One entry per name.
+        func liveExtra(_ windows: [NamedWindow]) -> [NamedWindow] {
+            var names = Set<String>()
+            return windows.filter {
+                live($0.window, horizon: sevenDayHorizon, requireReset: true) != nil && names.insert($0.name).inserted
+            }
         }
-        let newExtra = incoming.extra.filter {
-            live($0.window, horizon: sevenDayHorizon, requireReset: false) != nil
-        }
+        let storedExtra = liveExtra(stored?.extra ?? [])
+        var newExtra = liveExtra(incoming.extra)
         let kept = Outcome(
             current: Reading(fiveHour: storedFive, sevenDay: storedSeven, model: stored?.model, extra: storedExtra),
             shouldWrite: false)
@@ -85,6 +92,10 @@ enum UsageMerge {
                 // Can't tell how old this reading is, so at least never let it
                 // take usage backward inside a window.
                 if isOlder(newFive, than: storedFive) || isOlder(newSeven, than: storedSeven) { return kept }
+                // Same rule for each extra limit, one by one.
+                newExtra.removeAll { candidate in
+                    isOlder(candidate.window, than: storedExtra.first { $0.name == candidate.name }?.window)
+                }
             case .fresh:
                 break
             }
@@ -96,7 +107,7 @@ enum UsageMerge {
         // This run's extra limits replace stored ones of the same name;
         // stored ones it doesn't mention stay until they reset.
         let mentioned = Set(newExtra.map { $0.name })
-        let extra = newExtra + storedExtra.filter { !mentioned.contains($0.name) }
+        let extra = Array((newExtra + storedExtra.filter { !mentioned.contains($0.name) }).prefix(maxExtraWindows))
 
         // With nothing stored yet we write even without limits, so the app can
         // tell "no data yet" from "connected, but no limits reported".

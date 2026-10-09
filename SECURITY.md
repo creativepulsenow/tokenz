@@ -16,8 +16,9 @@ Only the latest release gets fixes.
 ## What Tokenz touches
 
 - It reads the session details Claude Code passes to its status line
-  command, and keeps the usage percentages, their reset times and the
-  model name.
+  command, and keeps the usage percentages and their reset times (for
+  the two standard limits and any others Claude Code reports, with their
+  names) and the model name.
 - It edits one entry, `statusLine`, in `~/.claude/settings.json`, and only
   when you click Connect, Update Connection or Disconnect.
 - It keeps its data in `~/Library/Application Support/Tokenz`: the usage
@@ -28,5 +29,7 @@ Only the latest release gets fixes.
   (`com.creativepulsenow.tokenz`).
 - It makes no network calls.
 
-Release builds are ad-hoc signed and not yet notarized. Check the SHA-256
-on the release page, or build from source.
+Release builds are ad-hoc signed and not yet notarized. Each one is built
+by GitHub Actions from its tagged commit and published with a signed
+provenance record; the release notes give the command to verify it. You
+can also build from source.

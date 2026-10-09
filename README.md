@@ -105,7 +105,7 @@ Claude Code ──(stdin JSON)──▶ Tokenz --statusline ──▶ ~/Library/
 ```
 
 - Claude Code runs the app's binary in `--statusline` mode after each assistant message and pipes session JSON to it on stdin. In that mode the binary does its job in a few milliseconds and exits; it never opens a window.
-- It stores the two rate-limit windows and the model name in a small owner-only JSON file, replacing the file in one step so the app never reads half of it.
+- It stores the rate-limit windows and the model name in a small owner-only JSON file, replacing the file in one step so the app never reads half of it.
 - With several Claude Code sessions open, each one re-runs the status line now and then with the numbers from its own last reply. Tokenz notes each session's accumulated API time and only accepts a reading from a session that has had a new reply since its last run, so an idle session can't overwrite the current number with an old one.
 - The app watches the file with a file-system dispatch source and re-renders on every change. As a safety net it also checks the file's modification time every 10 seconds.
 - Alerts fire once per threshold per window; state persists in `UserDefaults` so restarts don't re-fire.
@@ -157,17 +157,17 @@ Use it as background information. If hitting a window mid-task would cost you re
 
 ## Security notes
 
-- **Inputs are checked at the boundary.** Percentages are clamped to 0–100, timestamps outside a plausible range are rejected, and control and bidi-override characters are stripped from the model name. A buggy process that writes junk to `usage.json` can't crash the app. (Any process running as you can make the app show a wrong number, the same way it could edit the file.)
+- **Inputs are checked at the boundary.** Percentages are clamped to 0–100, timestamps outside a plausible range are rejected, and control and bidi-override characters are stripped from the model name and from the names of any extra limits. A buggy process that writes junk to `usage.json` can't crash the app. (Any process running as you can make the app show a wrong number, the same way it could edit the file.)
 - **`usage.json` is read defensively.** The app opens it without following symlinks, checks the open file is a small regular file, then reads. The file and its directory are owner-only.
 - **Connect changes one entry in `~/.claude/settings.json` and nothing else.** It re-parses its own edit and refuses to write if anything other than `statusLine` would differ. It refuses a file that isn't valid JSON, lists `statusLine` twice, is read-only, or changed while it was working (checked right before the write). It writes through symlinks so dotfile managers (stow, chezmoi, yadm) keep working.
 - **Backups stay private.** Before each change the app saves a full copy of `settings.json` in `~/Library/Application Support/Tokenz/settings-backups`, owner-only, and keeps the newest five. They contain whatever you keep in that file.
-- **What it keeps.** Claude Code passes session details to every status line command. Tokenz stores the usage percentages, their reset times, the model name, and one small record per session (the session id and its accumulated API time). It never asks for your Claude login and does not read or store tokens, the Keychain, or your conversations.
+- **What it keeps.** Claude Code passes session details to every status line command. Tokenz stores the usage percentages and their reset times (for the two standard limits and any others Claude Code reports, with their names), the model name, and one small record per session (the session id and its accumulated API time). It never asks for your Claude login and does not read or store tokens, the Keychain, or your conversations.
 - **What it runs.** The only program the app ever starts is the status line command saved in `~/Library/Application Support/Tokenz/chained-statusline-command`: your previous status line, if you had one when you connected. It receives the same session details Claude Code would have given it. The popover shows that command and lets you stop it.
 - **Release builds** use the hardened runtime, carry no entitlements, are stripped, and contain no build-machine paths. `Scripts/make-dmg.sh` fails if any of that stops being true.
 - **No sandbox.** The app has to edit `~/.claude/settings.json` and share an Application Support path with the `--statusline` process that Claude Code launches.
 - **Not notarized yet.** The app is ad-hoc signed, so macOS can't verify who built it. Check the SHA-256 on the release page, or build from source.
 
-- **Releases are built in the open.** From 1.4.4 on, each DMG is built by GitHub Actions from the tagged commit and published with a signed provenance record. To check a download: `gh attestation verify Tokenz-<version>.dmg -R creativepulsenow/tokenz`.
+- **Releases are built in the open.** From 1.4.4 on, each DMG is built by GitHub Actions from the tagged commit and published with a signed provenance record. To check a download: `gh attestation verify Tokenz-<version>.dmg -R creativepulsenow/tokenz --signer-workflow creativepulsenow/tokenz/.github/workflows/release.yml --source-ref refs/tags/v<version>`.
 
 To report a vulnerability, see [SECURITY.md](SECURITY.md).
 

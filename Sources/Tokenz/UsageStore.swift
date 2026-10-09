@@ -45,7 +45,7 @@ final class UsageStore: ObservableObject {
         modelName = Self.sanitizeModel(data.model)
         var seen = Set<String>()
         extraLimits = (data.extra ?? []).prefix(Self.maxExtraLimits).compactMap { entry in
-            guard let name = Self.sanitizeModel(entry.name), seen.insert(name).inserted,
+            guard let name = LimitName.clean(entry.name), seen.insert(name).inserted,
                   let percent = Self.sanitizePercent(entry.usedPercentage) else { return nil }
             return ExtraLimit(name: name, percent: percent, resetsAt: Self.sanitizeTimestamp(entry.resetsAt))
         }
@@ -78,9 +78,15 @@ final class UsageStore: ObservableObject {
 
     /// Extra limits whose window is still running. Unlike the two fixed rows
     /// there is no "0% after reset" for these: we don't know they still apply.
+    /// One without a plausible reset time is never shown, since nothing would
+    /// ever take it down again.
     var visibleExtraLimits: [ExtraLimit] {
         let now = Date()
-        return extraLimits.filter { $0.resetsAt.map { $0 > now } ?? true }
+        let horizon = now.addingTimeInterval(UsageMerge.sevenDayHorizon)
+        return extraLimits.filter { limit in
+            guard let reset = limit.resetsAt else { return false }
+            return reset > now && reset <= horizon
+        }
     }
 
     /// True once the file has been read at least once.

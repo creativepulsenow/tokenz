@@ -68,7 +68,7 @@ case "$SIGNATURE" in
   *) echo "ERROR: hardened runtime is not enabled"; exit 1 ;;
 esac
 case "$ENTITLEMENTS" in
-  *get-task-allow*) echo "ERROR: debug entitlement get-task-allow is present"; exit 1 ;;
+  *"<key>"*) echo "ERROR: the app carries entitlements; shipped builds must have none"; exit 1 ;;
 esac
 if LC_ALL=C grep -aq '/Users/' "$BINARY"; then
   echo "ERROR: the binary contains local /Users/ paths"; exit 1
