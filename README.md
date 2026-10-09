@@ -10,6 +10,10 @@ Usage limits for Claude Code in your menu bar. A native macOS app that shows whe
   <img src="docs/screenshot.png" alt="Tokenz menu bar item and popover" width="540">
 </p>
 
+<p align="center">
+  <img src="docs/screenshot-2.png" alt="Tokenz early in a session, with a tilde marking a last-known value" width="540">
+</p>
+
 The menu bar shows how much of Claude Code's 5-hour session window you have
 used and how long until it resets: `[51% · 1h 57m]`. The asterisk next to it
 is green under 60%, orange from 60%, and red from 85%. Click for the weekly
