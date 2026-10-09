@@ -15,10 +15,11 @@ Usage limits for Claude Code in your menu bar. A native macOS app that shows whe
 </p>
 
 The menu bar shows how much of Claude Code's 5-hour session window you have
-used and how long until it resets: `[51% · 1h 57m]`. The asterisk next to it
-is green under 60%, orange from 60%, and red from 85%. Click for the weekly
-window, exact reset times, and a Launch at Login toggle. You get a
-notification at 70%, 85%, and 95%, so you know before you hit the wall.
+used and how long until it resets: `[51% · 1h 57m]`. The asterisk beside it
+is green below 60%, orange from 60% and red from 85%. Click it to see the
+weekly window, the exact reset times and a Launch at Login toggle.
+Notifications go out at 70%, 85% and 95%, so the wall doesn't catch you by
+surprise.
 
 No daemons. No network. No account sign-in. Tokenz reads the rate-limit
 data Claude Code already hands to its status line command, writes it to a
@@ -26,20 +27,20 @@ small local file, and watches that file for changes. That's it.
 
 ## Why this exists
 
-If you've used Claude Code on Pro or Max, you know how this goes. You're deep in a coding session, the responses slow down or stop, and you discover you've burned the 5-hour window or your week. At that point the only options are wait it out or switch to API billing. Neither is what you want mid-task.
+Anyone on Pro or Max has been here. You're deep in a coding session and the replies slow down, then stop. That is how you find out the 5-hour window is gone, or the week is. Now you can wait, or you can switch to API billing. Mid-task, both are bad.
 
 Anthropic shows usage in the web console, but you have to go look. There's no signal on your machine while you work. Tokenz is that signal.
 
 ## Highlights
 
-- **Glanceable** — percentage and reset countdown in the menu bar, color-coded by how close you are.
-- **Always visible** — when Claude Code goes quiet, the last-known number stays up with a tilde (`~51%`) until the window resets, then reads `~0%`.
-- **Threshold notifications** — one alert per threshold per window. A first launch at 95% gets one notification, not three.
-- **One-click setup** — a **Connect to Claude Code** button does the wiring. No Terminal, no Homebrew. If you already have a custom status line, it keeps showing.
-- **Right with many sessions open** — an idle Claude Code session can't overwrite the current number with an old one.
-- **Launch at Login** — one-click toggle, backed by `SMAppService`.
-- **Small** — about 1,700 lines of Swift, unit tests for the logic that edits your settings, zero third-party dependencies.
-- **Private** — everything stays on your machine; the app makes zero network calls.
+- **Glanceable**: the percentage and the time to reset sit in the menu bar, colored by how close you are.
+- **Always visible**: when Claude Code goes quiet, the last-known number stays up with a tilde (`~51%`) until the window resets, then reads `~0%`.
+- **Threshold notifications**: one alert per threshold per window. A first launch at 95% gets one notification, not three.
+- **One-click setup**: a **Connect to Claude Code** button does the wiring. You don't need Terminal or Homebrew. A custom status line you already have keeps showing.
+- **Right with many sessions open**: an idle Claude Code session can't overwrite the current number with an old one.
+- **Launch at Login**: one-click toggle, backed by `SMAppService`.
+- **Small**: about 1,700 lines of Swift, unit tests for the logic that edits your settings, zero third-party dependencies.
+- **Private**: nothing leaves your machine. The app makes no network calls.
 
 ## Requirements
 
@@ -53,7 +54,7 @@ Anthropic shows usage in the web console, but you have to go look. There's no si
 1. Download the `.dmg` from the [latest release](https://github.com/creativepulsenow/tokenz/releases/latest).
 2. Open it and drag `Tokenz.app` onto the Applications shortcut.
    *(Connecting to Claude Code, Launch at Login and notifications all need the app to live in `/Applications`.)*
-3. Launch `Tokenz.app` from `/Applications`. **First time only:** macOS will refuse to open it because the app is ad-hoc signed and not yet notarized. Open **System Settings → Privacy & Security**, scroll down to the message about Tokenz, and click **Open Anyway**. (On macOS 14 you can instead right-click the app → **Open**.) Every later launch is normal.
+3. Launch `Tokenz.app` from `/Applications`. **First time only:** macOS won't open it, because the app is ad-hoc signed and not notarized yet. Open **System Settings → Privacy & Security**, scroll down to the message about Tokenz, and click **Open Anyway**. (On macOS 14 you can instead right-click the app → **Open**.) Every later launch is normal.
 4. Click the menu bar item, then **Connect to Claude Code**.
    This adds a `statusLine` entry to `~/.claude/settings.json`. The app keeps a backup of the file, changes nothing else in it, and refuses if the file isn't valid JSON.
 5. Send any message in Claude Code so it reports the first batch of usage data. (If nothing shows up, quit and relaunch Claude Code once.)
@@ -108,7 +109,7 @@ Claude Code ──(stdin JSON)──▶ Tokenz --statusline ──▶ ~/Library/
                                                          (menu bar + notifications)
 ```
 
-- Claude Code runs the app's binary in `--statusline` mode after each assistant message and pipes session JSON to it on stdin. In that mode the binary does its job in a few milliseconds and exits; it never opens a window.
+- Claude Code runs the app's binary in `--statusline` mode after each assistant message and pipes session JSON to it on stdin. In that mode the binary is done in a few milliseconds and exits. It never opens a window.
 - It stores the rate-limit windows and the model name in a small owner-only JSON file, replacing the file in one step so the app never reads half of it.
 - With several Claude Code sessions open, each one re-runs the status line now and then with the numbers from its own last reply. Tokenz notes each session's accumulated API time and only accepts a reading from a session that has had a new reply since its last run, so an idle session can't overwrite the current number with an old one.
 - The app watches the file with a file-system dispatch source and re-renders on every change. As a safety net it also checks the file's modification time every 10 seconds.
@@ -120,7 +121,7 @@ Claude Code ──(stdin JSON)──▶ Tokenz --statusline ──▶ ~/Library/
 
 Tokenz is a passive observer. The cadence comes entirely from Claude Code running the status line:
 
-- **Active session:** updates every assistant turn, typically every 5–30 seconds during back-and-forth, less often during long tool-heavy responses. File-write to menu bar latency is sub-second.
+- **Active session:** updates every assistant turn, typically every 5-30 seconds during back-and-forth, less often during long tool-heavy responses. File-write to menu bar latency is sub-second.
 - **Claude Code open but idle, or not running:** no updates. After 90 seconds the menu bar adds a tilde (`~51%`); the popover's "Updated ... ago" line says how old the number is. The last-known number stays until the 5-hour window rolls over, then reads `~0%`: usage only moves when you use Claude, so the last reading stays right while you're idle.
 
 The one thing a tilde number can miss is usage from claude.ai web, mobile or another machine; send any message in Claude Code to pick that up.
@@ -163,7 +164,7 @@ Use it as background information. If hitting a window mid-task would cost you re
 
 ## Security notes
 
-- **Inputs are checked at the boundary.** Percentages are clamped to 0–100, timestamps outside a plausible range are rejected, and control and bidi-override characters are stripped from the model name and from the names of any extra limits. A buggy process that writes junk to `usage.json` can't crash the app. (Any process running as you can make the app show a wrong number, the same way it could edit the file.)
+- **Inputs are checked at the boundary.** Percentages are clamped to 0-100, timestamps outside a plausible range are rejected, and control and bidi-override characters are stripped from the model name and from the names of any extra limits. A buggy process that writes junk to `usage.json` can't crash the app. (Any process running as you can make the app show a wrong number, the same way it could edit the file.)
 - **`usage.json` is read defensively.** The app opens it without following symlinks, checks the open file is a small regular file, then reads. The file and its directory are owner-only.
 - **Connect changes one entry in `~/.claude/settings.json` and nothing else.** It re-parses its own edit and refuses to write if anything other than `statusLine` would differ. It refuses a file that isn't valid JSON, lists `statusLine` twice, is read-only, or changed while it was working (checked right before the write). It writes through symlinks so dotfile managers (stow, chezmoi, yadm) keep working.
 - **Backups stay private.** Before each change the app saves a full copy of `settings.json` in `~/Library/Application Support/Tokenz/settings-backups`, owner-only, and keeps the newest five. They contain whatever you keep in that file.
@@ -199,7 +200,7 @@ The app reads only the rate-limit data that Claude Code already pipes to its
 status line command. If Anthropic changes that data shape, the app will
 show no data until updated.
 
-**No warranty. Use at your own risk.** Provided "as is" — see [LICENSE](LICENSE) for the full text. It will miss limit crossings sometimes, and it can't stop you from being charged or rate-limited. If overage matters for your work, don't rely on this app alone to catch it.
+**No warranty. Use at your own risk.** Provided "as is". See [LICENSE](LICENSE) for the full text. It will miss limit crossings sometimes, and it can't stop you from being charged or rate-limited. If overage matters for your work, don't rely on this app alone to catch it.
 
 ## Background
 
@@ -213,4 +214,4 @@ setup details:
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
