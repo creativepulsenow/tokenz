@@ -195,7 +195,7 @@ struct ConnectionPanel: View {
         case .notConnected:
             return "Connect adds a status line entry to ~/.claude/settings.json so Claude Code can report your usage. Tokenz keeps a backup of the file."
         case .needsUpdate:
-            return "Claude Code is set up with an earlier version of this app (it used to be called ClaudeMonitor) or a copy that has moved. Update points it at this app."
+            return "Claude Code is set up with a copy of Tokenz that has moved. Update points it at this app."
         case .otherStatusLine:
             return "Connect keeps your status line showing and adds Tokenz alongside it. Tokenz keeps a backup of settings.json."
         case .settingsUnreadable:

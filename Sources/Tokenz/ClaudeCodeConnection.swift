@@ -168,16 +168,11 @@ final class ClaudeCodeConnection: ObservableObject {
     /// mentions one of them (a wrapper, a pipeline, a comment) is the user's
     /// own, and must be kept and chained, not replaced.
     nonisolated static func isOurs(_ command: String) -> Bool {
-        if binaryPath(in: command) != nil { return true }
-        guard let script = singleShellWord(command.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-            return false
-        }
-        return (script as NSString).lastPathComponent == "claude-monitor-statusline.sh"
+        binaryPath(in: command) != nil
     }
 
     /// If `command` is exactly `<path to the app's binary> --statusline`, the
-    /// path. The binary may be under this name or the one the app had before
-    /// it was called Tokenz.
+    /// path.
     nonisolated static func binaryPath(in command: String) -> String? {
         let command = command.trimmingCharacters(in: .whitespacesAndNewlines)
         let flag = "--statusline"
@@ -186,9 +181,7 @@ final class ClaudeCodeConnection: ObservableObject {
         // The flag must be its own word.
         guard let separator = rest.last, separator == " " || separator == "\t",
               let path = singleShellWord(rest.trimmingCharacters(in: .whitespaces)) else { return nil }
-        let isBinary = path.hasSuffix("/Tokenz.app/Contents/MacOS/Tokenz")
-            || path.hasSuffix("/ClaudeMonitor.app/Contents/MacOS/ClaudeMonitor")
-        return isBinary ? path : nil
+        return path.hasSuffix("/Tokenz.app/Contents/MacOS/Tokenz") ? path : nil
     }
 
     /// If `text` is exactly one plain shell word (bare, single-quoted or

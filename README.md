@@ -63,8 +63,6 @@ You should see an asterisk and a percentage in your menu bar.
 
 **Already have a status line?** Connect keeps it. Tokenz runs first, then hands the same input to your command and shows its output, so your status line looks the same as before. The popover shows the command it runs for you, with a button to stop.
 
-**Upgrading from ClaudeMonitor?** Tokenz is the same app under a new name (1.3 and earlier shipped as ClaudeMonitor). Install Tokenz, open it, and click **Update Connection**. Then delete `ClaudeMonitor.app`, and optionally `~/Library/Application Support/ClaudeMonitor` and `~/.claude/claude-monitor-statusline.sh`. Launch at Login and notifications need to be turned on again.
-
 **Prefer to edit the file yourself?** Add this to `~/.claude/settings.json`:
 
 ```json
@@ -201,16 +199,6 @@ status line command. If Anthropic changes that data shape, the app will
 show no data until updated.
 
 **No warranty. Use at your own risk.** Provided "as is". See [LICENSE](LICENSE) for the full text. It will miss limit crossings sometimes, and it can't stop you from being charged or rate-limited. If overage matters for your work, don't rely on this app alone to catch it.
-
-## Background
-
-The original design notes are kept for the reasoning behind the approach
-(why a status line bridge instead of scraping the web console or calling
-Anthropic's API directly). They describe version 1.0 and are out of date on
-setup details:
-
-- [docs/technical-plan-v3.md](docs/technical-plan-v3.md)
-- [docs/technical-plan-v3.1.md](docs/technical-plan-v3.1.md)
 
 ## License
 

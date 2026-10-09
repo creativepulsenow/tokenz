@@ -53,7 +53,7 @@ Each release's section below is also its release notes.
 
 ## 1.4.0
 
-- **Renamed to Tokenz.** Earlier versions shipped as ClaudeMonitor.
+- **Renamed to Tokenz.**
 
 ## 1.3.0
 
